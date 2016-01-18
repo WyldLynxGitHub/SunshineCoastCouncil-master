@@ -73,7 +73,7 @@ namespace testRMBulkLoader
             fields[0].SetValue(title);
             fields[1].SetValue(dateCreated);
             fields[2].SetValue(notes);
-            fields[3].SetValue(257658);
+            fields[3].SetValue(331001);
             //fields[3].SetValue(authorUri);
             return true;
         }
@@ -104,6 +104,8 @@ namespace testRMBulkLoader
             Console.WriteLine("Starting up an import run ...");
             // the sample is going to do just one run, let's get started...
             // you will need to specify a working folder that works for you (see programming guide)
+            m_loader.LogFileName = "Logtest";
+            
             m_loader.StartRun("Simulated Input Data", "C:\\junk");
             //13 13 HP TRIM Bulk Data Importing Programming Guide
             // setup the property array that will be used to transfer record metadata
@@ -152,6 +154,7 @@ namespace testRMBulkLoader
             // process this batch
             Console.WriteLine("Processing import batch ...");
             m_loader.ProcessAccumulatedData();
+            
             // grab a copy of the history object (it is not available in bulk loader after we end the run
             Int64 runHistoryUri = m_loader.RunHistoryUri;
             // we're done, lets end the run now
@@ -164,6 +167,7 @@ namespace testRMBulkLoader
         + System.Convert.ToString(hist.RecordsCreated));
             Console.WriteLine("Number of locations created ... "
             + System.Convert.ToString(hist.LocationsCreated));
+            Console.WriteLine("Logfile; " + m_loader.LogFileName);
 
             return true;
         }
