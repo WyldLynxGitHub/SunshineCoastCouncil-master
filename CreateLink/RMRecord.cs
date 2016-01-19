@@ -30,8 +30,11 @@ SourceURL: {0}
         private TrimMainObject obj = null;
         private Database TrimDb = null;
         public static long intUri;
-        public static string strRecNumber;
+        private static string strRecNumber;
         private static string httpname = null;
+        private static string strRecTitle;
+        private static string strWebAddress;
+        private static string strWebServer;
         public RMRecord(TrimMainObject obj)
         {
             InitializeComponent();
@@ -46,8 +49,16 @@ SourceURL: {0}
 
             intUri = obj.Uri;
             strRecNumber = rec.Number;
-            
+            strRecTitle = rec.Title;
+            strWebServer = obj.WebURL;
+            toolTip1.SetToolTip(textBox1, "Change the link text to whatever you want.");
             textBox1.Text = strRecNumber;
+            if(!rec.IsContainer&&rec.IsElectronic)
+            {
+                radioButton3.Visible = true;
+            }
+            //strWebAddress = "https://eddie.c1.sccl.qld.gov.au/HPRMServiceAPI/Record/" + intUri + "/file/document";
+            strWebAddress = "https://eddie.c1.sccl.qld.gov.au/hprmwebclient/?uri=" + intUri;
             //MessageBox.Show("Link Created to clipboard.", "", MessageBoxButtons.OK);
         }
         public static void somethingToRunInThread()
@@ -58,7 +69,11 @@ SourceURL: {0}
             ///Record/858/file/document
             //string strClipAddress = "<a href="http://localhost/HPRMDemoServiceAPI/Record/" + intUri + "/file/document">Link"</a>";
             //Clipboard.SetText(strClipAddress);
-            string link = String.Format(html, "http://localhost/HPRMServiceAPI/Record/" + intUri + "/file/document", httpname);
+            //strWebAddress
+            //if()
+            //https://eddie.c1.sccl.qld.gov.au/hprmwebclient/?uri=174927
+            //
+            string link = String.Format(html, strWebAddress, httpname);
             Clipboard.SetText(link, TextDataFormat.Html);
         }
 
@@ -70,34 +85,60 @@ SourceURL: {0}
             clipboardThread.SetApartmentState(ApartmentState.STA);
             clipboardThread.IsBackground = false;
             clipboardThread.Start();
-            MessageBox.Show("Record download link copied to clipboard", "Create link", MessageBoxButtons.OK);
+            MessageBox.Show("Record hyperlink copied to clipboard", "Link Created", MessageBoxButtons.OK);
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            DialogResult dr =  MessageBox.Show("Are you sure you want to delete record?", "Delete record", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-            if(dr==DialogResult.Yes)
-            {
-                Record rec = obj.Database.FindTrimObjectByUri(BaseObjectTypes.Record, obj.Uri) as Record;
-                //
-                List<Location> lstAclView = new List<Location>();
-                Location lPol = new Location(TrimDb, obj.Database.CurrentUser.Uri);
-                lstAclView.Add(lPol);
-                TrimAccessControlList acl = rec.AccessControlList;
-                acl.set_AccessLocations((int)RecordAccess.ViewRecord, lstAclView.ToArray());
-                rec.AccessControlList = acl;
-                //
+        //private void button2_Click(object sender, EventArgs e)
+        //{
+        //    DialogResult dr =  MessageBox.Show("Are you sure you want to delete record?", "Delete record", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+        //    if(dr==DialogResult.Yes)
+        //    {
+        //        Record rec = obj.Database.FindTrimObjectByUri(BaseObjectTypes.Record, obj.Uri) as Record;
+        //        //
+        //        List<Location> lstAclView = new List<Location>();
+        //        Location lPol = new Location(TrimDb, obj.Database.CurrentUser.Uri);
+        //        lstAclView.Add(lPol);
+        //        TrimAccessControlList acl = rec.AccessControlList;
+        //        acl.set_AccessLocations((int)RecordAccess.ViewRecord, lstAclView.ToArray());
+        //        rec.AccessControlList = acl;
+        //        //
                 
 
 
-                rec.SetNotes("Record set to delete: reason - "+comboBox1.SelectedText, NotesUpdateType.AppendWithNewLine);
-                rec.Save();
-            }
-        }
+        //        rec.SetNotes("Record set to delete: reason - "+comboBox1.SelectedText, NotesUpdateType.AppendWithNewLine);
+        //        rec.Save();
+        //    }
+        //}
 
         private void label3_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            if(radioButton2.Checked)
+            {
+                textBox1.Text = strRecTitle;
+            }
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            if(radioButton1.Checked)
+            {
+                textBox1.Text = strRecNumber;
+            }
+        }
+
+        private void radioButton4_CheckedChanged(object sender, EventArgs e)
+        {
+            strWebAddress = "https://eddie.c1.sccl.qld.gov.au/hprmwebclient/?uri=" + intUri;
+        }
+
+        private void radioButton3_CheckedChanged(object sender, EventArgs e)
+        {
+            strWebAddress = "https://eddie.c1.sccl.qld.gov.au/HPRMServiceAPI/Record/" + intUri + "/file/document";
         }
     }
 }

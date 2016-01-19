@@ -140,11 +140,14 @@ namespace caMigrateEcm
             //
 
             //string connectionString = "Data Source=yfdev.cloudapp.net;Initial Catalog=SCC_ECM;Persist Security Info=True;User ID=EPL;Password=Password1!";
-            string connectionString = "Data Source=MSI-GS60;Initial Catalog=ECMTOne;Integrated Security=True";
-            using (SqlConnection con = new SqlConnection(connectionString))
+            //string connectionString = "Data Source=MSI-GS60;Initial Catalog=ECMTOne;Integrated Security=True";
+            Console.WriteLine("Enter Connection string");
+            using (SqlConnection con = new SqlConnection(Console.ReadLine()))
             {
                 con.Open();
-                using (SqlCommand command = new SqlCommand("SELECT * FROM View_1", con))
+                Console.WriteLine("Enter SQL");
+                string strloc = null;
+                using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     //using (Database db1 = new Database())
@@ -153,10 +156,10 @@ namespace caMigrateEcm
                     //    db.Connect();
                         while (reader.Read())
                         {
-                        if(reader.GetInt32(0).ToString()=="16505912")
-                        {
-                            var dfdf = "sdfsf";
-                        }
+                        //if(reader.GetInt32(0).ToString()=="16505912")
+                        //{
+                        //    var dfdf = "sdfsf";
+                        //}
                         string loc = @"D:\SCC\ECM\" + reader.GetString(3);
 
                         Record reccont = GetFolderUri(reader.GetString(6), reader.GetString(7), db);

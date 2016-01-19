@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.31101.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestSdk", "TestSdk\TestSdk.csproj", "{41B3BCDF-1D1D-4ADC-BC9A-866EAFD6FE9B}"
 EndProject
@@ -36,6 +36,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "wfMigrateFiles", "wfMigrateFiles\wfMigrateFiles.csproj", "{CE33100F-36D5-4816-ADBE-63D78625ABAA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "caMigrateEcm", "caMigrateEcm\caMigrateEcm.csproj", "{8B0010CE-904C-46EF-972B-623DAE96D370}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RMDeleteRecord", "RMDeleteRecord\RMDeleteRecord.csproj", "{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +113,10 @@ Global
 		{8B0010CE-904C-46EF-972B-623DAE96D370}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B0010CE-904C-46EF-972B-623DAE96D370}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B0010CE-904C-46EF-972B-623DAE96D370}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
