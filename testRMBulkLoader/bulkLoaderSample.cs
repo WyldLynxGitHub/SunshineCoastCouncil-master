@@ -13,7 +13,7 @@ namespace testRMBulkLoader
         Origin m_origin = null;
         BulkDataLoader m_loader = null;
         int m_recordCount = 0;
-
+        long lCont = 0;
         //public void Dispose()
         //{
         //    if (m_loader != null)
@@ -73,13 +73,17 @@ namespace testRMBulkLoader
             fields[0].SetValue(title);
             fields[1].SetValue(dateCreated);
             fields[2].SetValue(notes);
-            fields[3].SetValue(331001);
+            fields[3].SetValue(lCont);
             //fields[3].SetValue(authorUri);
             return true;
         }
         public bool run(Database db)
         {
             Console.WriteLine("Initialise BulkDataLoader sample ...");
+            //
+            Console.WriteLine("Enter Container Uri");
+            lCont = Convert.ToInt64(Console.ReadLine());
+
             // create an origin to use for this sample. Look it up first just so you can rerun the code.
             m_origin = db.FindTrimObjectByName(BaseObjectTypes.Origin, "Bulk Loader Sample") as Origin;
             if (m_origin == null)

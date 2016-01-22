@@ -17,9 +17,11 @@ namespace caMigrateEcm
             TrimApplication.Initialize();
             using (Database db = new Database())
             {
-                db.Id = "45";
+                //db.Id = "45";
                 db.Connect();
+                Console.WriteLine("Connected to DB: " + db.CurrentUser.Name);
                 bulkLoaderSample bls = new bulkLoaderSample();
+                //Console.ReadLine();
                 bls.run(db);
             }
         }
