@@ -17,70 +17,6 @@ namespace caMigrateEcm
         BulkDataLoader m_loader = null;
         int m_recordCount = 0;
         String strErrorCol = null;
-        //public void Dispose()
-        //{
-        //    if (m_loader != null)
-        //    {
-        //        m_loader.Dispose();
-        //        m_loader = null;
-        //    }
-        //    if (m_origin != null)
-        //    {
-        //        m_origin.Dispose();
-        //        m_origin = null;
-        //    }
-        //}
-        //bool getNextRecord(PropertyOrFieldValue[] fields)
-        //{
-        //    // this function would normally be processing some input data source,
-        //    // reading the next item, setting yp the fields array from this input.
-        //    // For the example, we "hard code" some simple property values and
-        //    // provide 5 records.
-        //    m_recordCount++;
-        //    if (m_recordCount > 25)
-        //    {
-        //        return false;
-        //    }
-        //    // a simple title
-        //    String title = "Test Bulk Loaded Record Import #" + System.Convert.ToString(m_recordCount);
-        //    title += ", imported from run number " + System.Convert.ToString(m_loader.RunHistoryUri);
-        //    // some notes
-        //    String notes = "Some notes for the bulk imported record #"
-        //    + System.Convert.ToString(m_recordCount)
-        //    + " data imported at: "
-        //    + TrimDateTime.Now.ToLongDateTimeString();
-        //    // a random date
-        //    TrimDateTime dateCreated = new TrimDateTime(2007, 12, 14, 12, 0, 0);
-        //    //// create a location "on the fly" for the Author property
-        //    //PropertyOrFieldValue[] authorFields = new PropertyOrFieldValue[2];
-        //    //authorFields[0] = new PropertyOrFieldValue(PropertyIds.LocationTypeOfLocation);
-        //    //authorFields[1] = new PropertyOrFieldValue(PropertyIds.LocationSortName);
-        //    //authorFields[0].SetValue(LocationType.Position);
-        //    //authorFields[1].SetValue("Position #" + System.Convert.ToString(m_recordCount));
-        //    ////12 12 HP TRIM Bulk Data Importing Programming Guide
-        //    //// if we are rerunning, check to see if it already exists
-        //    //PropertyValue positionName = new PropertyValue(PropertyIds.LocationSortName);
-        //    //positionName.SetValue("Position #" + System.Convert.ToString(m_recordCount));
-        //    //Int64 authorUri = m_loader.FindLocation(positionName);
-        //    //if (authorUri == 0)
-        //    //{
-        //    //    // use the loader to setup the new location's properties
-        //    //    Location authorLoc = m_loader.NewLocation();
-                
-        //    //        m_loader.SetProperties(authorLoc, authorFields);
-        //    //        // now submit the location to the bulk loader queue
-        //    //        authorUri = m_loader.SubmitLocation(authorLoc);
-                
-        //    //}
-        //    // now set up the fields array based on these values
-        //    fields[0].SetValue(title);
-        //    fields[1].SetValue(dateCreated);
-        //    fields[2].SetValue(notes);
-        //    fields[3].SetValue(2001);
-        //    fields[4].SetValue(DateTime.Now.ToShortDateString());
-        //    //fields[3].SetValue(authorUri);
-        //    return true;
-        //}
         public bool run(Database db)
         {
             try
@@ -111,10 +47,7 @@ namespace caMigrateEcm
                 {
                     Console.WriteLine("origin check: " + m_origin.Name);
                 }
-                //Console.ReadLine();
-                // construct a BulkDataLoader for this origin
                 m_loader = new BulkDataLoader(m_origin);
-                // initialise it as per instructions
                 if (!m_loader.Initialise())
                 {
                     // this sample has no way of dealing with the error.
@@ -126,32 +59,60 @@ namespace caMigrateEcm
                 m_loader.StartRun("Input Data", @"C:\Temp");
                 //13 13 HP TRIM Bulk Data Importing Programming Guide
                 // setup the property array that will be used to transfer record metadata
-                PropertyOrFieldValue[] recordFields = new PropertyOrFieldValue[11];
+                PropertyOrFieldValue[] recordFields = new PropertyOrFieldValue[20];
                 recordFields[0] = new PropertyOrFieldValue(PropertyIds.RecordTitle);
                 recordFields[1] = new PropertyOrFieldValue(PropertyIds.RecordDateCreated);
                 recordFields[2] = new PropertyOrFieldValue(PropertyIds.RecordNotes);
                 recordFields[3] = new PropertyOrFieldValue(PropertyIds.RecordContainer);
                 recordFields[4] = new PropertyOrFieldValue(PropertyIds.RecordNumber);
-                FieldDefinition fdDocumentType = new FieldDefinition(db, 517);
+                //
+                FieldDefinition fdDocumentType = new FieldDefinition(db, 13);
                 recordFields[5] = new PropertyOrFieldValue(fdDocumentType);
-                FieldDefinition fdInfringementNo = new FieldDefinition(db, 516);
+                //
+                FieldDefinition fdInfringementNo = new FieldDefinition(db, 12);
                 recordFields[6] = new PropertyOrFieldValue(fdInfringementNo);
-                FieldDefinition fdInternalReference = new FieldDefinition(db, 515);
+                //
+                FieldDefinition fdInternalReference = new FieldDefinition(db, 11);
                 recordFields[7] = new PropertyOrFieldValue(fdInternalReference);
-                FieldDefinition fdJobNo = new FieldDefinition(db, 514);
+                //
+                FieldDefinition fdJobNo = new FieldDefinition(db, 10);
                 recordFields[8] = new PropertyOrFieldValue(fdJobNo);
+                //
                 FieldDefinition fdPropertyNo = new FieldDefinition(db, 504);
                 recordFields[9] = new PropertyOrFieldValue(fdPropertyNo);
-                FieldDefinition fdSummaryText = new FieldDefinition(db, 513);
-                recordFields[10] = new PropertyOrFieldValue(fdSummaryText);
-                //SummaryText
-                //PropertyNo
-                //recordFields[3] = new PropertyOrFieldValue(PropertyIds.RecordAuthor);
-                // now lets add some recordsfdInternalReference
                 //
+                FieldDefinition fdSummaryText = new FieldDefinition(db, 9);
+                recordFields[10] = new PropertyOrFieldValue(fdSummaryText);
+                //New set
+                FieldDefinition fdBusinessCode = new FieldDefinition(db, 20);
+                recordFields[11] = new PropertyOrFieldValue(fdBusinessCode);
+                //
+                FieldDefinition fdClassName = new FieldDefinition(db, 14);
+                recordFields[12] = new PropertyOrFieldValue(fdClassName);
+                //
+                FieldDefinition fdCorrespondant = new FieldDefinition(db, 21);
+                recordFields[13] = new PropertyOrFieldValue(fdCorrespondant);
+                //
+                FieldDefinition fdDateReceived = new FieldDefinition(db, 19);
+                recordFields[14] = new PropertyOrFieldValue(fdDateReceived);
+                //
+                FieldDefinition fdDateRegistered = new FieldDefinition(db, 18);
+                recordFields[15] = new PropertyOrFieldValue(fdDateRegistered);
+                //
+                FieldDefinition fdDeclaredDate = new FieldDefinition(db, 17);
+                recordFields[16] = new PropertyOrFieldValue(fdDeclaredDate);
+                //
+                FieldDefinition fdDocumentDate = new FieldDefinition(db, 16);
+                recordFields[17] = new PropertyOrFieldValue(fdDocumentDate);
+                //
+                FieldDefinition fdExternalReference = new FieldDefinition(db, 15);
+                recordFields[18] = new PropertyOrFieldValue(fdExternalReference);
+                //
+                FieldDefinition fdFileName = new FieldDefinition(db, 22);
+                recordFields[19] = new PropertyOrFieldValue(fdFileName);
 
                 //string connectionString = "Data Source=yfdev.cloudapp.net;Initial Catalog=SCC_ECM;Persist Security Info=True;User ID=EPL;Password=Password1!";
-                //string connectionString = "Data Source=MSI-GS60;Initial Catalog=ECMTOne;Integrated Security=True";
+                //string connectionString = "Data Source=MSI-GS60;Initial Catalog=ECMNew;Integrated Security=True";
                 //Console.ReadLine();
                 Console.WriteLine("Enter Connection string");
                 using (SqlConnection con = new SqlConnection(Console.ReadLine()))
@@ -162,6 +123,7 @@ namespace caMigrateEcm
                     using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
+                        //Console.WriteLine("Query count: " + reader.FieldCount.ToString());
                         string strIndexLoc = null;
                         Console.WriteLine("Enter the network location of the index");
                         string strInloc = Console.ReadLine();
@@ -184,88 +146,114 @@ namespace caMigrateEcm
                         {
                             strInloc = null;
                         }
-                        //Console.WriteLine("read count: " + reader.FieldCount.ToString());
-
-
-                        //int count = reader.FieldCount;
-                        //while (reader.Read())
-                        //{
-                        //    for (int i = 0; i < count; i++)
-                        //    {
-                        //        Console.WriteLine(reader.GetValue(i));
-                        //    }
-                        //}
-
-                        //Console.ReadLine();
                         while (reader.Read())
                         {
                             try
                             {
-                                string loc = null;
-                                if (strInloc != null)
-                                {
-                                    loc = strInloc + reader.GetString(3);
-                                }
-
-                                Record reccont = GetFolderUri(reader.GetString(6), reader.GetString(7), db);
-                                if (reccont != null)
-                                {
-                                    Console.WriteLine("Importing ECM T1 record " + reader.GetInt32(0).ToString() + " ...");
-                                    //recordFields[0]
-                                    if (!reader.IsDBNull(0))
+                                //if (reader[0] != null)
+                                //{
+                                    string loc = null;
+                                    if (strInloc != null)
                                     {
-                                        recordFields[0].SetValue(reader.GetString(1));
+                                        loc = strInloc + reader.GetString(3);
+                                    }
+
+                                    Record reccont = GetFolderUri(reader.GetString(6), reader.GetString(7), db);
+                                    if (reccont != null)
+                                    {
+                                        Console.WriteLine("Importing ECM T1 record " + reader.GetInt32(0).ToString() + " ...");
+                                    string fTitle;
+                                    if (reader.IsDBNull(1) == true)
+                                    {
+                                        fTitle = "Record description from ECM Export is Null";
+                                        strErrorCol = strErrorCol + "Ecm description to Title issue: Description Null for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
                                     }
                                     else
                                     {
-                                        recordFields[0].SetValue("No description for title");
+                                        if(reader.GetString(1).Length>253)
+                                        {
+                                            fTitle = reader.GetString(1).Substring(0, 253);
+                                            strErrorCol = strErrorCol + "Ecm description to Title issue: Description greater then 254 ch, description truncated for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
+                                        }
+                                        else if(reader.GetString(1).Length<1)
+                                        {
+                                            fTitle = "Record description from ECM Export is Empty";
+                                            strErrorCol = strErrorCol + "Ecm description to Title issue: Description blank for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
+                                        }
+                                        else
+                                        {
+                                            fTitle = reader.GetString(1);
+                                        }
                                     }
-                                    recordFields[1].SetValue((TrimDateTime)reader.GetDateTime(2));
-                                    recordFields[2].SetValue("Migrated from EMS T1");
-                                    recordFields[3].SetValue(reccont.Uri);
-                                    recordFields[4].SetValue(reader.GetInt32(0).ToString()); //Record number
-                                    if (reader.GetString(16) != null) { recordFields[5].SetValue(reader.GetString(16)); } else { recordFields[4].SetValue("No Document type"); }
-                                    recordFields[6].SetValue(reader[14].ToString()); //InfringementNo
-                                    recordFields[7].SetValue(reader[10].ToString()); //InternalReference
-                                    recordFields[8].SetValue(reader[15].ToString()); //JobNo
-                                    recordFields[9].SetValue(reader[13].ToString()); //PropertyNo
-                                    recordFields[10].SetValue(reader[11].ToString()); //SummaryText
+                                        recordFields[0].SetValue(fTitle); //Title
+                                        recordFields[1].SetValue((TrimDateTime)reader.GetDateTime(2));
+                                        recordFields[2].SetValue("Migrated from EMS T1 using " + m_origin.Name);
+                                        recordFields[3].SetValue(reccont.Uri); //Container
+                                        recordFields[4].SetValue(reader.GetInt32(0).ToString()); //Record number
+
+                                        //Potential null fileds
+                                        if (reader.IsDBNull(16) == false) { recordFields[5].SetValue(reader.GetString(16)); } else { recordFields[5].SetValue("No Document type"); } //Document type
+                                        if (reader.IsDBNull(14) == false) { recordFields[6].SetValue(reader[14].ToString()); } else { recordFields[6].ClearValue(); }//InfringementNo
+                                    if (reader.IsDBNull(10) == false) { recordFields[7].SetValue(reader[10].ToString()); } else { recordFields[7].ClearValue(); } //InternalReference
+                                    if (reader.IsDBNull(16) == false) { recordFields[8].SetValue(reader[15].ToString()); } else { recordFields[8].ClearValue(); }//JobNo
+                                        if (reader.IsDBNull(13) == false) { recordFields[9].SetValue(reader[13].ToString()); } else { recordFields[9].ClearValue(); }//PropertyNo
+                                    if (reader.IsDBNull(11) == false) { recordFields[10].SetValue(reader[11].ToString()); } else { recordFields[10].ClearValue(); }//SummaryText
+                                                                                                                                                                  //
+                                                                                                                                                                  //
+                                    if (reader.IsDBNull(18) == false) { recordFields[11].SetValue(reader[18].ToString()); } else { recordFields[11].ClearValue(); } //BusinessCode
+                                    if (reader.IsDBNull(17) == false) { recordFields[12].SetValue(reader[17].ToString()); } else { recordFields[12].ClearValue(); }//ClassName
+                                    if (reader.IsDBNull(8) == false) { recordFields[13].SetValue(reader[8].ToString()); } else { recordFields[13].ClearValue(); }//Correspondant
+                                    if (reader.IsDBNull(12) == false) { recordFields[14].SetValue((TrimDateTime)reader.GetDateTime(12)); } //DateReceived
+                                        if (reader.IsDBNull(5) == false) { recordFields[15].SetValue((TrimDateTime)reader.GetDateTime(5)); } //DateRegistered
+                                        if (reader.IsDBNull(4) == false) { recordFields[16].SetValue((TrimDateTime)reader.GetDateTime(4)); } //DeclaredDate
+                                        if (reader.IsDBNull(2) == false) { recordFields[17].SetValue((TrimDateTime)reader.GetDateTime(2)); } //DocumentDate
+                                        if (reader.IsDBNull(9) == false) { recordFields[18].SetValue(reader[9].ToString()); } //ExternalReference
+                                    if (reader.IsDBNull(3) == false) { recordFields[19].SetValue(reader[3].ToString()); } else { recordFields[19].ClearValue(); }//FileName
+
+
+
+
+                                    //
+                                    //
 
                                     Record importRec = m_loader.NewRecord();
-                                    if (File.Exists(loc))
-                                    {
-                                        InputDocument doc = new InputDocument();
-                                        doc.SetAsFile(loc);
+                                        if (File.Exists(loc))
+                                        {
+                                            InputDocument doc = new InputDocument();
+                                            doc.SetAsFile(loc);
 
-                                        m_loader.SetDocument(importRec, doc, windowsmode);
+                                            m_loader.SetDocument(importRec, doc, windowsmode);
+                                        }
+
+                                        m_loader.SetProperties(importRec, recordFields);
+                                        m_loader.SubmitRecord(importRec);
+
+                                        if (m_loader.Error.Bad == true)
+                                        {
+                                            Console.WriteLine("Error -  " + m_loader.Error.Message + " " + m_loader.Error.Source);
+                                            strErrorCol = strErrorCol + "Loader Error: " + reader.GetInt32(0).ToString() + ", " + " reader.GetInt32(0).ToString(): " + reader.GetInt32(0).ToString() + " reader.GetString(1): " + reader.GetString(1) + " reader.GetString(6): " + reader.GetString(6) + " reader.GetString(7)" + reader.GetString(7) + " reccont.Uri:" + reccont.Uri.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
+                                        }
                                     }
-                                    m_loader.SetProperties(importRec, recordFields);
-                                    m_loader.SubmitRecord(importRec);
-                                    if (m_loader.Error.Bad == true)
+                                    else
                                     {
-                                        Console.WriteLine("Error -  " + m_loader.Error.Message + " " + m_loader.Error.Source);
-                                        strErrorCol = strErrorCol + "Loader Error: " + reader.GetInt32(0).ToString()+", " + " reader.GetInt32(0).ToString(): " + reader.GetInt32(0).ToString() + " reader.GetString(1): " + reader.GetString(1) + " reader.GetString(6): " + reader.GetString(6) + " reader.GetString(7)" + reader.GetString(7) + " reccont.Uri:"+ reccont.Uri.ToString()+   " - " + m_loader.Error.Message + Environment.NewLine;
+                                        Console.WriteLine("Could no find folder: " + reader.GetString(6), reader.GetString(7));
+                                        strErrorCol = strErrorCol + "Find folder Error: " + reader.GetInt32(0).ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
                                     }
-                                }
-                                else
-                                {
-                                    Console.WriteLine("Could no find folder: " + reader.GetString(6), reader.GetString(7));
-                                    strErrorCol = strErrorCol + "Find folder Error: " + reader.GetInt32(0).ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
-                                }
+                                    //strErrorCol = strErrorCol + "No DocSet  for record number" + Environment.NewLine;
+                                //}
+
                             }
                             catch (Exception exp)
                             {
-                                Loggitt("ReadLin Error: " + exp.Message.ToString(), "Error"+ " reader.GetInt32(0).ToString(): "+ reader.GetInt32(0).ToString()+ " reader.GetString(1): "+ reader.GetString(1)+ " reader.GetString(6): " + reader.GetString(6) + " reader.GetString(7)"+ reader.GetString(7));
+                                Loggitt("ReadLine Error: " + exp.Message.ToString(), "GetInt32(0): "+ reader.GetInt32(0).ToString()+ ", GetString(1): "+ reader.GetString(1)+ ", GetString(2): " + reader.GetString(2) + ", GetString(3): " + reader.GetString(3) + ", GetString(4): " + reader.GetString(4) + ", GetString(5): " + reader.GetString(5) + ", GetString(6): " + reader.GetString(6) + ", GetString(7)"+ reader.GetString(7) + ", GetString(8)" + reader.GetString(8) + ", GetString(9)" + reader.GetString(9) + ", GetString(10)" + reader.GetString(10));
                             }
                         }
-                        //}
                     }
                 }
 
                 Console.WriteLine("Processing import batch ...");
                 m_loader.ProcessAccumulatedData();
                 Int64 runHistoryUri = m_loader.RunHistoryUri;
-                // we're done, lets end the run now
                 Console.WriteLine("Processing complete ...");
                 m_loader.EndRun();
                 stopwatch.Stop();
@@ -293,7 +281,10 @@ namespace caMigrateEcm
         private static Record GetFolderUri(string p1, string p2, Database db)
         {
             Record r = null;
+            //For tfr to SCC
             //zz legacy T1 ECM - Business Folders - Information Management - Projects
+            //Local
+            //zz Legacy T1 ECM - Business Folders
             Classification c = (Classification)db.FindTrimObjectByName(BaseObjectTypes.Classification, "zz legacy T1 ECM - Business Folders - " + p1);
             if (c != null)
             {
