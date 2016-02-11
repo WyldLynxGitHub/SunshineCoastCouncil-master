@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "caMigrateEcm", "caMigrateEc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RMDeleteRecord", "RMDeleteRecord\RMDeleteRecord.csproj", "{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMigrationProcessingOptions", "TestMigrationProcessingOptions\TestMigrationProcessingOptions.csproj", "{E8C11996-4535-493D-9B10-0AB6C4E5F627}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncUdfs", "SyncUdfs\SyncUdfs.csproj", "{3305BA68-BA36-4046-950E-9A3426051853}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +121,14 @@ Global
 		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E47CAE4-EF13-480E-B2B2-E594ADFE1C84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8C11996-4535-493D-9B10-0AB6C4E5F627}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8C11996-4535-493D-9B10-0AB6C4E5F627}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8C11996-4535-493D-9B10-0AB6C4E5F627}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8C11996-4535-493D-9B10-0AB6C4E5F627}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3305BA68-BA36-4046-950E-9A3426051853}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3305BA68-BA36-4046-950E-9A3426051853}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3305BA68-BA36-4046-950E-9A3426051853}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3305BA68-BA36-4046-950E-9A3426051853}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
