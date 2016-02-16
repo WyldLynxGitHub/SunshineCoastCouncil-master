@@ -42,10 +42,84 @@ namespace SyncUdfs
         }
         static void Main(string[] args)
         {
-            SyncUdfs();
+            //SyncUdfs();
+            ReadUdfs();
             
         }
-        static void SyncUdfs()
+
+        private static void ReadUdfs()
+        {
+            TrimApplication.Initialize();
+            using (Database db = new Database())
+            {
+                //    TrimMainObjectSearch s = new TrimMainObjectSearch(db, BaseObjectTypes.FieldDefinition)
+                //    {
+
+                //if(db.FindTrimObjectByName(BaseObjectTypes.FieldDefinition,"dfdfd")!= null)
+                //    {
+
+                //    }
+                //FieldDefinition fdJobNo = new FieldDefinition(db, "ECM STD:JobNo");
+                //recordFields[8] = new PropertyOrFieldValue(fdJobNo);
+
+                TrimMainObjectSearch objs = new TrimMainObjectSearch(db, BaseObjectTypes.FieldDefinition);
+                string txtUdfObjectSet = null;
+                string txtUdfClass = null;
+                string txtSql = null;
+                string txtPopClass = null;
+                string txtAddtoUdf = null;
+                //try{}catch { Console.WriteLine("Data convert problem with "+)}
+                int cnt = 5;
+                objs.SelectByPrefix("ECM ");
+                foreach(FieldDefinition fd in objs)
+                {
+                    string fdName = "fd_" + fd.Name.Replace(" ", "").Replace(":","").Replace("[","").Replace("]","");
+                    string className = fd.Name.Replace(" ", "").Replace(":", "").Replace("[", "").Replace("]", "");
+                    Console.WriteLine("UDF: " + fdName);
+                    txtUdfObjectSet = txtUdfObjectSet + "FieldDefinition " + fdName + "= new FieldDefinition(db, \""+ fd.Name+"\");"+Environment.NewLine+"recordFields["+cnt+"] = new PropertyOrFieldValue("+ fdName + ");"+Environment.NewLine+Environment.NewLine;
+                    //
+                    txtUdfClass = txtUdfClass + "public "+ fd.Format +" " +className+" { get; set; }"+Environment.NewLine;
+                    //
+                    //int STDDocumentDescription = reader.GetOrdinal("STD:DocumentDescription");
+                    txtSql = txtSql + "int "+className+" = reader.GetOrdinal(\""+ fd.Name.Remove(0,4) + "\");"+Environment.NewLine;
+                    //
+                    //ecm.DocSetID = reader.GetInt32(ECMSTDDocumentSetID).ToString();
+                    //ecm.ECMDescription = reader.GetString(ECMSTDDocumentDescription);
+                    switch(fd.Format)
+                    {
+                        case UserFieldFormats.String:
+                            txtPopClass = txtPopClass + "try{if(reader.IsDBNull(" + className + ") == false){ecm." + className + " = reader.GetString("+ className + ");}}catch { Console.WriteLine(\"Data convert problem with "+className+"\");}" + Environment.NewLine;
+                            break;
+                        case UserFieldFormats.Text:
+                            txtPopClass = txtPopClass + "try{if(reader.IsDBNull(" + className + ") == false){ecm." + className + " = reader.GetString(" + className + ");}}catch { Console.WriteLine(\"Data convert problem with " + className + "\");}" + Environment.NewLine;
+                            break;
+                        case UserFieldFormats.Datetime:
+                            txtPopClass = txtPopClass + "try{if(reader.IsDBNull(" + className + ") == false){ecm." + className + " = reader.GetDateTime(" + className + ");}}catch { Console.WriteLine(\"Data convert problem with " + className + "\");}" + Environment.NewLine;
+                            break;
+                        case UserFieldFormats.Number:
+                            txtPopClass = txtPopClass + "try{if(reader.IsDBNull(" + className + ") == false){ecm." + className + " = reader.GetInt32(" + className + ");}}catch { Console.WriteLine(\"Data convert problem with " + className + "\");}" + Environment.NewLine;
+                            break;
+                        default:
+                            txtPopClass = txtPopClass + "try{Not covered: " + fd.Format.ToString() + Environment.NewLine;
+                            break;
+                    }
+                    txtAddtoUdf = txtAddtoUdf + "if (h."+className+" != null) { recordFields["+cnt+"].SetValue(h."+className+"); } else { recordFields["+cnt+"].ClearValue(); }//"+className+Environment.NewLine;
+                    ////if (h.InfringementNo != null) { recordFields[6].SetValue(h.InfringementNo); } else { recordFields[6].ClearValue(); }//InfringementNo
+                    //txtPopClass = txtPopClass + "";
+
+
+                    cnt++;
+                }
+                //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationSetUdfObject.txt", txtUdfObjectSet);
+                //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationClass.txt", txtUdfClass);
+                //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationSQL.txt", txtSql);
+                //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationPopClass.txt", txtPopClass);
+                File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationAddtoUdf.txt", txtAddtoUdf);
+
+            }
+        }
+
+        private static void SyncUdfs()
         {
             List<ADDITIONALFIELD> lstaf = new List<ADDITIONALFIELD>();
             ADDITIONALFIELD af = new ADDITIONALFIELD();

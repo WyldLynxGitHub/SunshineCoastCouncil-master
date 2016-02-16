@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMigrationProcessingOpti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SyncUdfs", "SyncUdfs\SyncUdfs.csproj", "{3305BA68-BA36-4046-950E-9A3426051853}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "caMigrateRevisions", "caMigrateRevisions\caMigrateRevisions.csproj", "{04665618-C8B8-4E92-95E6-FA3DA0164D55}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -129,6 +131,10 @@ Global
 		{3305BA68-BA36-4046-950E-9A3426051853}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3305BA68-BA36-4046-950E-9A3426051853}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3305BA68-BA36-4046-950E-9A3426051853}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04665618-C8B8-4E92-95E6-FA3DA0164D55}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04665618-C8B8-4E92-95E6-FA3DA0164D55}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04665618-C8B8-4E92-95E6-FA3DA0164D55}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04665618-C8B8-4E92-95E6-FA3DA0164D55}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
