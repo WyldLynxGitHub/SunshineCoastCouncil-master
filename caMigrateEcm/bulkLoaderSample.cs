@@ -181,6 +181,7 @@ namespace caMigrateEcm
         String strErrorCol = null;
         public bool run(Database db)
         {
+            
             try
             {
                 Stopwatch stopwatch = new Stopwatch();
@@ -198,7 +199,7 @@ namespace caMigrateEcm
                     m_origin.Name = "ECM bulk load";
                     m_origin.OriginLocation = "SQL Extracts";
                     // sample code assumes you have a record type defined called "Document"
-                    m_origin.DefaultRecordType = db.FindTrimObjectByUri(BaseObjectTypes.RecordType, 2) as RecordType;
+                    m_origin.DefaultRecordType = db.FindTrimObjectByUri(BaseObjectTypes.RecordType, 16) as RecordType;
                     // don't bother with other origin defaults for the sample, just save it so we can use it
                     //m_origin.DefaultContainer = db.FindTrimObjectByUri(BaseObjectTypes.Record, 148020) as Record;
 
@@ -219,17 +220,19 @@ namespace caMigrateEcm
                 Console.WriteLine("Starting migration run ...");
                 //Console.ReadLine();
                 m_loader.StartRun("Input Data", @"C:\Temp");
+                
                 //13 13 HP TRIM Bulk Data Importing Programming Guide
                 // setup the property array that will be used to transfer record metadata
-                PropertyOrFieldValue[] recordFields = new PropertyOrFieldValue[110];
+                PropertyOrFieldValue[] recordFields = new PropertyOrFieldValue[111];
                 recordFields[0] = new PropertyOrFieldValue(PropertyIds.RecordTitle);
                 recordFields[1] = new PropertyOrFieldValue(PropertyIds.RecordDateCreated);
                 recordFields[2] = new PropertyOrFieldValue(PropertyIds.RecordNotes);
                 recordFields[3] = new PropertyOrFieldValue(PropertyIds.RecordContainer);
                 recordFields[4] = new PropertyOrFieldValue(PropertyIds.RecordNumber);
+                recordFields[110] = new PropertyOrFieldValue(PropertyIds.RecordBarcode);
 
                 //
-                FieldDefinition fd_ECMApplicationRAM_Application_Number = new FieldDefinition(db, "ECM Application:RAM_Application_Number");
+                FieldDefinition fd_ECMApplicationRAM_Application_Number = new FieldDefinition(db, "Application Number List");
                 recordFields[5] = new PropertyOrFieldValue(fd_ECMApplicationRAM_Application_Number);
 
                 FieldDefinition fd_ECMBarCodeBarCodeString = new FieldDefinition(db, "ECM BarCode:BarCodeString");
@@ -409,7 +412,7 @@ namespace caMigrateEcm
                 FieldDefinition fd_ECMPropertyProperty_Name = new FieldDefinition(db, "ECM Property:Property_Name");
                 recordFields[64] = new PropertyOrFieldValue(fd_ECMPropertyProperty_Name);
 
-                FieldDefinition fd_ECMPropertyProperty_No = new FieldDefinition(db, "ECM Property:Property_No");
+                FieldDefinition fd_ECMPropertyProperty_No = new FieldDefinition(db, "Property Number List");
                 recordFields[65] = new PropertyOrFieldValue(fd_ECMPropertyProperty_No);
 
                 FieldDefinition fd_ECMPropertyStreet_Name = new FieldDefinition(db, "ECM Property:Street_Name");
@@ -469,7 +472,7 @@ namespace caMigrateEcm
                 FieldDefinition fd_ECMSTDExternalReference = new FieldDefinition(db, "ECM STD:ExternalReference");
                 recordFields[84] = new PropertyOrFieldValue(fd_ECMSTDExternalReference);
 
-                FieldDefinition fd_ECMSTDInfringementNo = new FieldDefinition(db, "ECM STD:InfringementNo");
+                FieldDefinition fd_ECMSTDInfringementNo = new FieldDefinition(db, "Infringement Number");
                 recordFields[85] = new PropertyOrFieldValue(fd_ECMSTDInfringementNo);
 
                 FieldDefinition fd_ECMSTDInternalReference = new FieldDefinition(db, "ECM STD:InternalReference");
@@ -848,36 +851,25 @@ namespace caMigrateEcm
                     string strTotal = lstecm.Count().ToString();
                     int intCount = 0;
 
-                    //int intMaxVersion = lstecm.Max(x => x.ECMSTDVersion);
+                //int intMaxVersion = lstecm.Max(x => x.ECMSTDVersion);
                 //for (int i = 1; i < intMaxVersion; i++)
                 //{
 
-                    //}
-                    foreach (ECMMigration h in lstecm.Where(x => x.ECMSTDVersion == 1))
+                //}
+                foreach (ECMMigration h in lstecm.Where(x => x.ECMSTDVersion == 1))
+                {
+                    intCount = intCount + 1;
+                    try
                     {
-                        intCount = intCount + 1;
-                        try
+                        string strStorageLoc = FindMappedStorage(h.ECMVolumeStorageLocation) + "\\" + h.ECMVolumeFilename;
+                        //long chkExistingrec = m_loader.FindRecord(h.DocSetID.ToString());
+                        if (m_loader.FindRecord(h.DocSetID.ToString()) == 0)
                         {
-                            //if (reader[0] != null)
-                            //{
-                            //string strStorageLoc = FindMappedStorage(h.ECMVolumeStorageLocation) + "\\" + h.ECMVolumeFilename;
-                        string strStorageLoc = @"D:\SCC\ECM\0BF\00FB6E55.001.pdf";
-                            string loc = null;
-                            //if (strInloc != null)
-                            //{
-                            //    loc = strInloc + h.ECMVolumeStorageLocation;
-                            //}
-
-                            //long chkExistingrec = m_loader.FindRecord(h.DocSetID.ToString());
-                            //if (chkExistingrec == 0)
-                            //{
-
-                                //}
-
+                            if (File.Exists(strStorageLoc))
+                            {
                                 Record reccont = GetFolderUri(h.ECMBCSFunction_Name + " - " + h.ECMBCSActivity_Name.Replace("-", "~"), h.ECMBCSSubject_Name, db);
                                 if (reccont != null)
                                 {
-                                    Console.WriteLine("Importing ECM T1 record " + h.DocSetID.ToString() + " Row " + intCount.ToString() + " of " + strTotal);
                                     string fTitle;
                                     if (h.ECMDescription == null)
                                     {
@@ -907,10 +899,18 @@ namespace caMigrateEcm
                                     recordFields[2].SetValue("Migrated from EMS T1 using " + m_origin.Name);
                                     recordFields[3].SetValue(reccont.Uri); //Container
                                     recordFields[4].SetValue(h.DocSetID); //record Number
+                                    try
+                                    {
+                                        recordFields[110].SetValue(h.ECMBarCodeBarCodeString);
+                                    }
+                                    catch (Exception exp)
+                                    {
+                                        strErrorCol = strErrorCol + "ECMBarCodeBarCodeString error " + exp.Message.ToString() + Environment.NewLine;
+                                    }
                                     //recordFields[111].SetValue((DateTime)h.ECMSTDDateLastAccessed);
                                     //recordFields[111].SetValue((TrimDateTime)h.ECMSTDDateLastAccessed);
 
-                            if (h.ECMSTDDocumentDate != null) { recordFields[1].SetValue((TrimDateTime)h.ECMSTDDocumentDate); } else { recordFields[5].ClearValue(); }//ECMApplicationRAM_Application_Number
+                                    if (h.ECMSTDDocumentDate != null) { recordFields[1].SetValue((TrimDateTime)h.ECMSTDDocumentDate); } else { recordFields[5].ClearValue(); }//ECMApplicationRAM_Application_Number
                                                                                                                                                                               //Auto generated
                                     if (h.ECMApplicationRAM_Application_Number != null) { recordFields[5].SetValue(h.ECMApplicationRAM_Application_Number); } else { recordFields[5].ClearValue(); }//ECMApplicationRAM_Application_Number
                                     if (h.ECMBarCodeBarCodeString != null) { recordFields[6].SetValue(h.ECMBarCodeBarCodeString); } else { recordFields[6].ClearValue(); }//ECMBarCodeBarCodeString
@@ -1019,38 +1019,23 @@ namespace caMigrateEcm
                                                                                                                                                                                 //if (h.ECMVolumeUpdatable != null) { recordFields[109].SetValue(h.ECMVolumeUpdatable); } else { recordFields[109].ClearValue(); }//ECMVolumeUpdatable
 
                                     Record importRec = m_loader.NewRecord();
-                            importRec.DateReceived = h.ECMSTDDateReceived;
-                            //SecurityLevel sl = new SecurityLevel(db, 2);
-                            //importRec.SecurityProfile.SecurityLevel = sl;
+                                    importRec.DateReceived = h.ECMSTDDateReceived;
+                                    //SecurityLevel sl = new SecurityLevel(db, 2);
+                                    //importRec.SecurityProfile.SecurityLevel = sl;
 
-                            var imax = lstecm.Where(x => x.DocSetID == h.DocSetID).Max(x => x.ECMSTDVersion);
-                            if(imax==1)
-                            {
-                                importRec.SetAsFinal(false);
-                                importRec.DateFinalized = (TrimDateTime)h.ECMSTDDateLastAccessed;
-                            }
-
-
+                                    var imax = lstecm.Where(x => x.DocSetID == h.DocSetID).Max(x => x.ECMSTDVersion);
+                                    //if (imax == 1)
+                                    //{
+                                    //    importRec.SetAsFinal(false);
+                                    //    importRec.DateFinalized = (TrimDateTime)h.ECMSTDDateLastAccessed;
+                                    //}
 
 
-                            //if(var recUri = m_loader.FindRecord(h.DocSetID.ToString())==0)
-                            //    {
+                                    InputDocument doc = new InputDocument();
+                                    doc.SetAsFile(strStorageLoc);
 
-                            //}
-
-                            //Record UpdateRec = m_loader.UpdateDocument()
-
-                            //importRec.DateFinalized
-                            //importRec.SetAsFinal
-
-
-                            if (File.Exists(strStorageLoc))
-                                    {
-                                        InputDocument doc = new InputDocument();
-                                        doc.SetAsFile(strStorageLoc);
-
-                                        m_loader.SetDocument(importRec, doc, windowsmode);
-                                    }
+                                    m_loader.SetDocument(importRec, doc, windowsmode);
+                                    //}
 
                                     m_loader.SetProperties(importRec, recordFields);
                                     m_loader.SubmitRecord(importRec);
@@ -1060,237 +1045,61 @@ namespace caMigrateEcm
                                         Console.WriteLine("Error -  " + m_loader.Error.Message + " " + m_loader.Error.Source);
                                         //strErrorCol = strErrorCol + "Loader Error: " + h.DocSetID.ToString() + ", " + " ECMDescription: " + h.ECMDescription + " Bcs: " + h.Bcs + " Folder" + h.Folder + " reccont.Uri:" + reccont.Uri.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
                                     }
+                                    else
+                                    {
+                                        Console.WriteLine("Imported ECM T1 record " + h.DocSetID.ToString() + " Row " + intCount.ToString() + " of " + strTotal);
+
+                                    }
                                 }
                                 else
                                 {
-                                    //Console.WriteLine("Could no find folder: " + " Bcs: " + h.Bcs + " Folder" + h.Folder);
-                                    strErrorCol = strErrorCol + "Find folder Error: " + h.DocSetID.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
+                                    Console.WriteLine("Could no find folder: " + h.DocSetID.ToString());
+                                    strErrorCol = strErrorCol + "Cant find folder to set: " + h.DocSetID.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
                                 }
-                            //}
-                            //else
-                            //{
-                            //    //Record importRec = m_loader.NewRecord();
-                            //    if (File.Exists(strStorageLoc))
-                            //    {
-                            //        InputDocument doc = new InputDocument();
-                            //        doc.SetAsFile(strStorageLoc);
-                            //        m_loader.UpdateDocument(chkExistingrec, doc, windowsmode);
-                                    
-                            //        //m_loader.SetDocument(importRec, doc, windowsmode);
-                            //    }
+                            }
+                            else
+                            {
+                                Console.WriteLine("File does not exist: " + strStorageLoc);
+                                strErrorCol = strErrorCol + "File does not exist: " + strStorageLoc + Environment.NewLine;
 
-                                //m_loader.SetProperties(importRec, recordFields);
-                                //m_loader.SubmitRecord(importRec);
 
-                                //if (m_loader.Error.Bad == true)
-                                //{
-                                //    Console.WriteLine("Error -  " + m_loader.Error.Message + " " + m_loader.Error.Source);
-                                //    //strErrorCol = strErrorCol + "Loader Error: " + h.DocSetID.ToString() + ", " + " ECMDescription: " + h.ECMDescription + " Bcs: " + h.Bcs + " Folder" + h.Folder + " reccont.Uri:" + reccont.Uri.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
-                                //}
-
-                            //}
+                            }
                         }
-                        catch (Exception exp)
+                        else
                         {
-                            Loggitt("ReadLine Error: " + exp.Message.ToString(), " DocSetID: " + h.DocSetID + ", ECMDescription: " + h.ECMDescription + ", GetString(2): " + h.ECMSTDDocumentDate.ToString()+ ", FileLocation: " + h.ECMVolumeFilename + ", STDDateLastAccessed: " + h.ECMSTDDateLastAccessed.ToString() + ", STDDateRegistered: " + h.ECMSTDDateRegistered.ToString() + ", Bcs: " + h.ECMBCSActivity_Name+" - "+h.ECMBCSFunction_Name + ", Folder:" + h.ECMBCSSubject_Name);
+                            Console.WriteLine("Record already Exists " + h.DocSetID.ToString() + " Row " + intCount.ToString() + " of " + strTotal);
+                            strErrorCol = strErrorCol + "Record already Exists " + h.DocSetID.ToString() + " Row " + intCount.ToString() + " of " + strTotal + Environment.NewLine;
+
                         }
                     }
+                    catch (Exception exp)
+                    {
+                        Loggitt("ReadLine Error: " + exp.Message.ToString(), " DocSetID: " + h.DocSetID + ", ECMDescription: " + h.ECMDescription + ", GetString(2): " + h.ECMSTDDocumentDate.ToString() + ", FileLocation: " + h.ECMVolumeFilename + ", STDDateLastAccessed: " + h.ECMSTDDateLastAccessed.ToString() + ", STDDateRegistered: " + h.ECMSTDDateRegistered.ToString() + ", Bcs: " + h.ECMBCSActivity_Name + " - " + h.ECMBCSFunction_Name + ", Folder:" + h.ECMBCSSubject_Name);
+                    }
+                }
 
-                    stopwatch.Stop();
-                    Console.WriteLine("Process import batch? Enter to continue.");
+                stopwatch.Stop();
+                    //Console.WriteLine("Process import batch? Enter to continue.");
                     //Console.ReadLine();
+                    
                     m_loader.ProcessAccumulatedData();
+                
                     Int64 runHistoryUri = m_loader.RunHistoryUri;
 
 
                     Console.WriteLine("Processing complete ...");
                     m_loader.EndRun();
 
-
                     TimeSpan ts = stopwatch.Elapsed;
 
-                    // Format and display the TimeSpan value.
                     string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
                     Console.WriteLine("Process Time " + elapsedTime);
                     var sdsd = m_loader.ErrorMessage;
                     // just for interest, lets look at the origin history object and output what it did
                     OriginHistory hist = new OriginHistory(db, runHistoryUri);
+                
                     Console.WriteLine("Number of records created ..... " + System.Convert.ToString(hist.RecordsCreated));
-                    //Console.WriteLine("Number of locations created ... "
-                    //+ System.Convert.ToString(hist.LocationsCreated));
                     Loggitt("Bulk loading run:" + Environment.NewLine + "Number of records created: " + hist.RecordsCreated.ToString() + Environment.NewLine + "Time to run: " + elapsedTime + Environment.NewLine + "Loader errors: " + sdsd + Environment.NewLine + "Records in error: : " + hist.RecordsInError.ToString() + Environment.NewLine + Environment.NewLine + strErrorCol, "BulkLoader Log");
-
-
-
-                //}
-                //stopwatch1.Stop();
-                //TimeSpan ts1 = stopwatch1.Elapsed;
-                //string elapsedTime1 = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts1.Hours, ts1.Minutes, ts1.Seconds, ts1.Milliseconds / 10);
-                //Console.WriteLine("Process Time " + elapsedTime1);
-                //}
-
-
-
-
-                //
-                //Console.WriteLine("Enter Connection string");
-                //using (SqlConnection con = new SqlConnection(Console.ReadLine()))
-                //{
-                //    con.Open();
-                //    Console.WriteLine("Enter SQL string");
-                //    string strloc = null;
-                //    using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
-
-                //    using (SqlDataReader reader = command.ExecuteReader())
-                //    {
-                //        //Console.WriteLine("Query count: " + reader.FieldCount.ToString());
-                //        string strIndexLoc = null;
-                //        Console.WriteLine("Enter the network location of the index");
-                //        string strInloc = Console.ReadLine();
-                //        Console.WriteLine("Copy documents or remove");
-                //        BulkLoaderCopyMode windowsmode = BulkLoaderCopyMode.WindowsCopy;
-                //        switch (Console.ReadLine())
-                //        {
-                //            case "C":
-                //                windowsmode = BulkLoaderCopyMode.WindowsCopy;
-                //                break;
-                //            case "R":
-                //                windowsmode = BulkLoaderCopyMode.WindowsMove;
-                //                break;
-                //            default:
-                //                windowsmode = BulkLoaderCopyMode.WindowsCopy;
-                //                break;
-                //        }
-                //        //Console.ReadLine();
-                //        if (!Directory.Exists(strInloc))
-                //        {
-                //            strInloc = null;
-                //        }
-
-
-
-
-
-                //        while (reader.Read())
-                //        {
-                //            //try
-                //            //{
-                //            //    //if (reader[0] != null)
-                //            //    //{
-                //            //        string loc = null;
-                //            //        if (strInloc != null)
-                //            //        {
-                //            //            loc = strInloc + reader.GetString(3);
-                //            //        }
-
-                //            //        Record reccont = GetFolderUri(reader.GetString(6), reader.GetString(7), db);
-                //            //        if (reccont != null)
-                //            //        {
-                //            //            Console.WriteLine("Importing ECM T1 record " + reader.GetInt32(0).ToString() + " ...");
-                //            //        string fTitle;
-                //            //        if (reader.IsDBNull(1) == true)
-                //            //        {
-                //            //            fTitle = "Record description from ECM Export is Null";
-                //            //            strErrorCol = strErrorCol + "Ecm description to Title issue: Description Null for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
-                //            //        }
-                //            //        else
-                //            //        {
-                //            //            if(reader.GetString(1).Length>253)
-                //            //            {
-                //            //                fTitle = reader.GetString(1).Substring(0, 253);
-                //            //                strErrorCol = strErrorCol + "Ecm description to Title issue: Description greater then 254 ch, description truncated for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
-                //            //            }
-                //            //            else if(reader.GetString(1).Length<1)
-                //            //            {
-                //            //                fTitle = "Record description from ECM Export is Empty";
-                //            //                strErrorCol = strErrorCol + "Ecm description to Title issue: Description blank for record no " + reader.GetInt32(0).ToString() + Environment.NewLine;
-                //            //            }
-                //            //            else
-                //            //            {
-                //            //                fTitle = reader.GetString(1);
-                //            //            }
-                //            //        }
-                //            //            recordFields[0].SetValue(fTitle); //Title
-                //            //            recordFields[1].SetValue((TrimDateTime)reader.GetDateTime(2));
-                //            //            recordFields[2].SetValue("Migrated from EMS T1 using " + m_origin.Name);
-                //            //            recordFields[3].SetValue(reccont.Uri); //Container
-                //            //            recordFields[4].SetValue(reader.GetInt32(0).ToString()); //Record number
-
-                //            //            //Potential null fileds
-                //            //            if (reader.IsDBNull(16) == false) { recordFields[5].SetValue(reader.GetString(16)); } else { recordFields[5].SetValue("No Document type"); } //Document type
-                //            //            if (reader.IsDBNull(14) == false) { recordFields[6].SetValue(reader[14].ToString()); } else { recordFields[6].ClearValue(); }//InfringementNo
-                //            //        if (reader.IsDBNull(10) == false) { recordFields[7].SetValue(reader[10].ToString()); } else { recordFields[7].ClearValue(); } //InternalReference
-                //            //        if (reader.IsDBNull(16) == false) { recordFields[8].SetValue(reader[15].ToString()); } else { recordFields[8].ClearValue(); }//JobNo
-                //            //            if (reader.IsDBNull(13) == false) { recordFields[9].SetValue(reader[13].ToString()); } else { recordFields[9].ClearValue(); }//PropertyNo
-                //            //        if (reader.IsDBNull(11) == false) { recordFields[10].SetValue(reader[11].ToString()); } else { recordFields[10].ClearValue(); }//SummaryText
-                //            //                                                                                                                                      //
-                //            //                                                                                                                                      //
-                //            //        if (reader.IsDBNull(18) == false) { recordFields[11].SetValue(reader[18].ToString()); } else { recordFields[11].ClearValue(); } //BusinessCode
-                //            //        if (reader.IsDBNull(17) == false) { recordFields[12].SetValue(reader[17].ToString()); } else { recordFields[12].ClearValue(); }//ClassName
-                //            //        if (reader.IsDBNull(8) == false) { recordFields[13].SetValue(reader[8].ToString()); } else { recordFields[13].ClearValue(); }//Correspondant
-                //            //        if (reader.IsDBNull(12) == false) { recordFields[14].SetValue((TrimDateTime)reader.GetDateTime(12)); } //DateReceived
-                //            //            if (reader.IsDBNull(5) == false) { recordFields[15].SetValue((TrimDateTime)reader.GetDateTime(5)); } //DateRegistered
-                //            //            if (reader.IsDBNull(4) == false) { recordFields[16].SetValue((TrimDateTime)reader.GetDateTime(4)); } //DeclaredDate
-                //            //            if (reader.IsDBNull(2) == false) { recordFields[17].SetValue((TrimDateTime)reader.GetDateTime(2)); } //DocumentDate
-                //            //            if (reader.IsDBNull(9) == false) { recordFields[18].SetValue(reader[9].ToString()); } //ExternalReference
-                //            //        if (reader.IsDBNull(3) == false) { recordFields[19].SetValue(reader[3].ToString()); } else { recordFields[19].ClearValue(); }//FileName
-
-                //            //        Record importRec = m_loader.NewRecord();
-
-
-                //            //            if (File.Exists(loc))
-                //            //            {
-                //            //                InputDocument doc = new InputDocument();
-                //            //                doc.SetAsFile(loc);
-
-                //            //                m_loader.SetDocument(importRec, doc, windowsmode);
-                //            //            }
-
-                //            //            m_loader.SetProperties(importRec, recordFields);
-                //            //            m_loader.SubmitRecord(importRec);
-
-                //            //            if (m_loader.Error.Bad == true)
-                //            //            {
-                //            //                Console.WriteLine("Error -  " + m_loader.Error.Message + " " + m_loader.Error.Source);
-                //            //                strErrorCol = strErrorCol + "Loader Error: " + reader.GetInt32(0).ToString() + ", " + " reader.GetInt32(0).ToString(): " + reader.GetInt32(0).ToString() + " reader.GetString(1): " + reader.GetString(1) + " reader.GetString(6): " + reader.GetString(6) + " reader.GetString(7)" + reader.GetString(7) + " reccont.Uri:" + reccont.Uri.ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
-                //            //            }
-                //            //        }
-                //            //        else
-                //            //        {
-                //            //            Console.WriteLine("Could no find folder: " + reader.GetString(6), reader.GetString(7));
-                //            //            strErrorCol = strErrorCol + "Find folder Error: " + reader.GetInt32(0).ToString() + " - " + m_loader.Error.Message + Environment.NewLine;
-                //            //        }
-                //            //}
-                //            //catch (Exception exp)
-                //            //{
-                //            //    Loggitt("ReadLine Error: " + exp.Message.ToString(), "GetInt32(0): "+ reader.GetInt32(0).ToString()+ ", GetString(1): "+ reader.GetString(1)+ ", GetString(2): " + reader.GetString(2) + ", GetString(3): " + reader.GetString(3) + ", GetString(4): " + reader.GetString(4) + ", GetString(5): " + reader.GetString(5) + ", GetString(6): " + reader.GetString(6) + ", GetString(7)"+ reader.GetString(7) + ", GetString(8)" + reader.GetString(8) + ", GetString(9)" + reader.GetString(9) + ", GetString(10)" + reader.GetString(10));
-                //            //}
-                //        }
-                //    }
-                //}
-                //stopwatch.Stop();
-                //Console.WriteLine("Process import batch? Enter to continue.");
-                //Console.ReadLine();
-                //m_loader.ProcessAccumulatedData();
-                //Int64 runHistoryUri = m_loader.RunHistoryUri;
-
-
-                //Console.WriteLine("Processing complete ...");
-                //m_loader.EndRun();
-
-
-                //TimeSpan ts = stopwatch.Elapsed;
-
-                //// Format and display the TimeSpan value.
-                //string elapsedTime = String.Format("{0:00}:{1:00}:{2:00}.{3:00}", ts.Hours, ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
-                //Console.WriteLine("Process Time " + elapsedTime);
-                //var sdsd = m_loader.ErrorMessage;
-                //// just for interest, lets look at the origin history object and output what it did
-                //OriginHistory hist = new OriginHistory(db, runHistoryUri);
-                //Console.WriteLine("Number of records created ..... " + System.Convert.ToString(hist.RecordsCreated));
-                ////Console.WriteLine("Number of locations created ... "
-                ////+ System.Convert.ToString(hist.LocationsCreated));
-                //Loggitt("Bulk loading run:" + Environment.NewLine + "Number of records created: " + hist.RecordsCreated.ToString() + Environment.NewLine + "Time to run: " + elapsedTime + Environment.NewLine + "Loader errors: " + sdsd + Environment.NewLine + "Records in error: : " + hist.RecordsInError.ToString() + Environment.NewLine + Environment.NewLine + strErrorCol, "BulkLoader Log");
 
             }
             catch (Exception exp)
@@ -1302,19 +1111,28 @@ namespace caMigrateEcm
 
         private string FindMappedStorage(string eCMVolumeStorageLocation)
         {
-            var skjfdh = eCMVolumeStorageLocation.Substring(9, 11);
+            //string dfd = @"\\scas57\ECMIncache18\";
+            string skjfdh = null;
+            if (eCMVolumeStorageLocation.Length == 21)
+            {
+                skjfdh = eCMVolumeStorageLocation.Substring(9, 11);
+            }
+            else if (eCMVolumeStorageLocation.Length == 22)
+            {
+                skjfdh = eCMVolumeStorageLocation.Substring(9, 12);
+            }
+            //var skjfdh = eCMVolumeStorageLocation.Substring(9, 11);
             switch(skjfdh)
             {
                 
-
                 case "ECMIncache2":
-                    skjfdh = @"X:\ECMIncache2\INCACHE";
+                    skjfdh = @"T:\ECMIncache2\INCACHE";
                     break;
                 case "ECMIncache3":
-                    skjfdh = @"X:\ECMIncache3\INCACHE";
+                    skjfdh = @"Y:\ECMIncache3\INCACHE";
                     break;
                 case "ECMIncache4":
-                    skjfdh = @"X:\ECMIncache4\INCACHE";
+                    skjfdh = @"Y:\ECMIncache4\INCACHE";
                     break;
                 case "ECMIncache5":
                     skjfdh = @"Y:\ECMIncache5\INCACHE";
@@ -1328,31 +1146,29 @@ namespace caMigrateEcm
                 case "ECMIncache8":
                     skjfdh = @"Y:\ECMIncache8\INCACHE";
                     break;
-
-
                 case "ECMIncache10":
                     skjfdh = @"W:\ECMIncache10\INCACHE";
                     break;
                 case "ECMIncache11":
-                    skjfdh = @"X:\ECMIncache11\INCACHE";
+                    skjfdh = @"W:\ECMIncache11\INCACHE";
                     break;
                 case "ECMIncache12":
-                    skjfdh = @"O:\ECMIncache12\INCACHE";
+                    skjfdh = @"V:\ECMIncache12\INCACHE";
                     break;
                 case "ECMIncache13":
-                    skjfdh = @"O:\ECMIncache13\INCACHE";
+                    skjfdh = @"V:\ECMIncache13\INCACHE";
                     break;
                 case "ECMIncache14":
-                    skjfdh = @"P:\ECMIncache14\INCACHE";
+                    skjfdh = @"U:\ECMIncache14\INCACHE";
                     break;
                 case "ECMIncache15":
-                    skjfdh = @"P:\ECMIncache15\INCACHE";
+                    skjfdh = @"U:\ECMIncache15\INCACHE";
                     break;
                 case "ECMIncache17":
-                    skjfdh = @"Q:\ECMIncache17\INCACHE";
+                    skjfdh = @"T:\ECMIncache17\INCACHE";
                     break;
                 case "ECMIncache18":
-                    skjfdh = @"Q:\ECMIncache18\INCACHE";
+                    skjfdh = @"T:\ECMIncache18\INCACHE";
                     break;
 
             }

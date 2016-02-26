@@ -42,8 +42,8 @@ namespace SyncUdfs
         }
         static void Main(string[] args)
         {
-            //SyncUdfs();
-            ReadUdfs();
+            SyncUdfs();
+            //ReadUdfs();
             
         }
 
@@ -118,7 +118,6 @@ namespace SyncUdfs
 
             }
         }
-
         private static void SyncUdfs()
         {
             List<ADDITIONALFIELD> lstaf = new List<ADDITIONALFIELD>();
@@ -146,7 +145,7 @@ namespace SyncUdfs
 
 
             //
-            FileStream myFileStream = new FileStream(@"D:\Users\WyldLynx\Documents\ECMTEST.xml", FileMode.Open);
+            FileStream myFileStream = new FileStream(@"\ECMTEST.xml", FileMode.Open);
             // Call the Deserialize method and cast to the object type.
             lstaf = (List<ADDITIONALFIELD>)mySerializer.Deserialize(myFileStream);
 
@@ -207,10 +206,10 @@ namespace SyncUdfs
                         fd.UpperLimit = aff.UPPERLIMIT;
                         fd.Length = Convert.ToInt32(aff.LENGTH);
                         fd.SetNotes("Additional field syncronised automatically", NotesUpdateType.AppendWithUserStamp);
-                        RecordType rt = new RecordType(db, 21);
-
-                        fd.Save();
+                        RecordType rt = new RecordType(db, 16);
                         fd.SetIsUsedForRecord(rt, true);
+                        fd.Save();
+                        
                         Console.WriteLine("new additional field added: " + fd.Name);
 
                     }

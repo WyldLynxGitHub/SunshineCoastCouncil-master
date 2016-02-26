@@ -68,13 +68,14 @@ namespace caMigrateRevisions
             //}
             try
             {
-                SqlConnection con = new SqlConnection(Console.ReadLine());
+                SqlConnection con = new SqlConnection("Data Source=Cl1025;Initial Catalog=StagingMove;Integrated Security=True");
                 con.Open();
-                //Console.WriteLine("Enter SQL string");
-                string sqlstring = "Select [STD:DocumentSetID], [STD:version], [Volume:StorageLocation], [Volume:Filename] from FinalisedRecs_FirstCut group by [STD:DocumentSetID], [Volume:StorageLocation], [Volume:Filename], [STD:version] Having Max([STD:version]) > 1 order by[STD:DocumentSetID],  [STD:version]";
+                Console.WriteLine("Enter SQL string");
+                //string sqlstring = "Select [STD:DocumentSetID], [STD:version], [Volume:StorageLocation], [Volume:Filename] from [Extract Public Indexed] group by[STD:DocumentSetID], [Volume:StorageLocation], [Volume:Filename], [STD:version] Having Max([STD:version]) > 1 Order by[STD:DocumentSetID], [STD:version] OFFSET 75000 ROWS FETCH NEXT 3184 ROWS ONLY";
                 //List<ECMMigration> lstecm = new List<ECMMigration>();
                 List<newRevision> lstRev = new List<newRevision>();
-                using (SqlCommand command = new SqlCommand(sqlstring, con))
+                //
+                using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
                 {
                     DataSet dataSet = new DataSet();
 
@@ -96,6 +97,9 @@ namespace caMigrateRevisions
                         lstRev.Add(nr);
                     }
                 }
+                con.Close();
+                con.Dispose();
+                Console.WriteLine("Sql query transfered to List, total to process: " + lstRev.Count().ToString());
 
                 TrimApplication.Initialize();
                 using (Database db = new Database())
@@ -107,18 +111,20 @@ namespace caMigrateRevisions
                         Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, rr.DocSetID);
                         if (r != null)
                         {
-                            //if (r.RevisionNumber > (int)rr.revision)
-                            //{
+
+                            try
+                            {
                                 InputDocument doc = new InputDocument();
-
                                 doc.SetAsFile(strStorageLoc);
-
-                                //Record r = new Record(db, uri);
                                 r.SetDocument(doc, true, false, "Add new ECM revision - migration");
                                 r.Save();
                                 Console.WriteLine("Added new revision " + rr.revision.ToString() + " to record " + rr.DocSetID);
-                            //}
-       
+                            }
+                            catch (Exception exp)
+                            {
+                                Console.WriteLine("Record number " + rr.DocSetID + "  could not be added");
+                                Loggitt("Record number " + rr.DocSetID + "  could not be added", "Revision load error");
+                            }
                         }
                         else
                         {
@@ -139,7 +145,16 @@ namespace caMigrateRevisions
         }
         private static string FindMappedStorage(string eCMVolumeStorageLocation)
         {
-            var skjfdh = eCMVolumeStorageLocation.Substring(9, 11);
+            string skjfdh = null;
+            if (eCMVolumeStorageLocation.Length == 21)
+            {
+                skjfdh = eCMVolumeStorageLocation.Substring(9, 11);
+            }
+            else if (eCMVolumeStorageLocation.Length == 22)
+            {
+                skjfdh = eCMVolumeStorageLocation.Substring(9, 12);
+            }
+
             switch (skjfdh)
             {
                 case "ECMIncache2":
@@ -167,25 +182,25 @@ namespace caMigrateRevisions
                     skjfdh = @"W:\ECMIncache10\INCACHE";
                     break;
                 case "ECMIncache11":
-                    skjfdh = @"X:\ECMIncache11\INCACHE";
+                    skjfdh = @"W:\ECMIncache11\INCACHE";
                     break;
                 case "ECMIncache12":
-                    skjfdh = @"O:\ECMIncache12\INCACHE";
+                    skjfdh = @"V:\ECMIncache12\INCACHE";
                     break;
                 case "ECMIncache13":
-                    skjfdh = @"O:\ECMIncache13\INCACHE";
+                    skjfdh = @"V:\ECMIncache13\INCACHE";
                     break;
                 case "ECMIncache14":
-                    skjfdh = @"P:\ECMIncache14\INCACHE";
+                    skjfdh = @"U:\ECMIncache14\INCACHE";
                     break;
                 case "ECMIncache15":
-                    skjfdh = @"P:\ECMIncache15\INCACHE";
+                    skjfdh = @"U:\ECMIncache15\INCACHE";
                     break;
                 case "ECMIncache17":
-                    skjfdh = @"Q:\ECMIncache17\INCACHE";
+                    skjfdh = @"T:\ECMIncache17\INCACHE";
                     break;
                 case "ECMIncache18":
-                    skjfdh = @"Q:\ECMIncache18\INCACHE";
+                    skjfdh = @"T:\ECMIncache18\INCACHE";
                     break;
 
             }
