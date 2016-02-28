@@ -42,8 +42,8 @@ namespace SyncUdfs
         }
         static void Main(string[] args)
         {
-            SyncUdfs();
-            //ReadUdfs();
+            //SyncUdfs();
+            ReadUdfs();
             
         }
 
@@ -68,6 +68,7 @@ namespace SyncUdfs
                 string txtSql = null;
                 string txtPopClass = null;
                 string txtAddtoUdf = null;
+                string txtAddsdkUdf = null;
                 //try{}catch { Console.WriteLine("Data convert problem with "+)}
                 int cnt = 5;
                 objs.SelectByPrefix("ECM ");
@@ -106,7 +107,7 @@ namespace SyncUdfs
                     txtAddtoUdf = txtAddtoUdf + "if (h."+className+" != null) { recordFields["+cnt+"].SetValue(h."+className+"); } else { recordFields["+cnt+"].ClearValue(); }//"+className+Environment.NewLine;
                     ////if (h.InfringementNo != null) { recordFields[6].SetValue(h.InfringementNo); } else { recordFields[6].ClearValue(); }//InfringementNo
                     //txtPopClass = txtPopClass + "";
-
+                    txtAddsdkUdf = txtAddsdkUdf + "rec.SetFieldValue(fd_" + className + ", UserFieldValue.FromDotNetObject(ecm." + className + "));" + Environment.NewLine;
 
                     cnt++;
                 }
@@ -114,7 +115,8 @@ namespace SyncUdfs
                 //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationClass.txt", txtUdfClass);
                 //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationSQL.txt", txtSql);
                 //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationPopClass.txt", txtPopClass);
-                File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationAddtoUdf.txt", txtAddtoUdf);
+                //File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationAddtoUdf.txt", txtAddtoUdf);
+                File.WriteAllText(@"D:\Users\WyldLynx\Documents\BuildMigrationSDFUDF.txt", txtAddsdkUdf);
 
             }
         }

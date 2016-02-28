@@ -45,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "caHardDriveStats", "caHardD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterECMCheck", "MasterECMCheck\MasterECMCheck.csproj", "{FD6F5702-7794-45AB-8840-7BC21AE2ACA3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "caCreateEcmV2", "caCreateEcmV2\caCreateEcmV2.csproj", "{3F30498E-DBCF-4440-8C68-9DEED77B5F2C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -135,6 +137,10 @@ Global
 		{FD6F5702-7794-45AB-8840-7BC21AE2ACA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD6F5702-7794-45AB-8840-7BC21AE2ACA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD6F5702-7794-45AB-8840-7BC21AE2ACA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F30498E-DBCF-4440-8C68-9DEED77B5F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F30498E-DBCF-4440-8C68-9DEED77B5F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F30498E-DBCF-4440-8C68-9DEED77B5F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F30498E-DBCF-4440-8C68-9DEED77B5F2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

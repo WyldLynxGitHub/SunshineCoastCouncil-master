@@ -573,16 +573,10 @@ namespace caMigrateEcm
                 using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
                 {
                     DataSet dataSet = new DataSet();
-
                     DataTable dt = new DataTable();
-                    //DataTable dtt = extension.
-
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
-                    da.Fill(dt);
-                    //List<ECMMigration> mytbl = Helper.DataTableToList<ECMMigration>(dt);
-                    //dataSet.Tables[0].SerializeToJSon();
-                    
+                    da.Fill(dt);                  
                     SqlDataReader reader = command.ExecuteReader();
                     //
                     int ECMSTDDocumentSetID = reader.GetOrdinal("STD:DocumentSetID");
@@ -605,7 +599,7 @@ namespace caMigrateEcm
                     int ECMCaseCaseType = reader.GetOrdinal("Case:CaseType");
                     int ECMCaseEndDate = reader.GetOrdinal("Case:EndDate");
                     int ECMCaseStartDate = reader.GetOrdinal("Case:StartDate");
-                    int ECMCorrespondentDescription = reader.GetOrdinal("Correspondent:Description");
+                    //int ECMCorrespondentDescription = reader.GetOrdinal("Correspondent:Description");
                     int ECMECMDriveID = reader.GetOrdinal("ECMDriveID");
                     int ECMEmployeeCommencement_Date = reader.GetOrdinal("Employee:Commencement_Date");
                     int ECMEmployeeEmployee_Given_Name = reader.GetOrdinal("Employee:Employee_Given_Name");
@@ -723,7 +717,7 @@ namespace caMigrateEcm
                         try { if (reader.IsDBNull(ECMCaseCaseType) == false) { ecm.ECMCaseCaseType = reader.GetString(ECMCaseCaseType); } } catch { Console.WriteLine("Data convert problem with ECMCaseCaseType"); }
                         try { if (reader.IsDBNull(ECMCaseEndDate) == false) { ecm.ECMCaseEndDate = reader.GetDateTime(ECMCaseEndDate); } } catch { Console.WriteLine("Data convert problem with ECMCaseEndDate"); }
                         try { if (reader.IsDBNull(ECMCaseStartDate) == false) { ecm.ECMCaseStartDate = reader.GetDateTime(ECMCaseStartDate); } } catch { Console.WriteLine("Data convert problem with ECMCaseStartDate"); }
-                        try { if (reader.IsDBNull(ECMCorrespondentDescription) == false) { ecm.ECMCorrespondentDescription = reader.GetString(ECMCorrespondentDescription); } } catch { Console.WriteLine("Data convert problem with ECMCorrespondentDescription"); }
+                        //try { if (reader.IsDBNull(ECMCorrespondentDescription) == false) { ecm.ECMCorrespondentDescription = reader.GetString(ECMCorrespondentDescription); } } catch { Console.WriteLine("Data convert problem with ECMCorrespondentDescription"); }
                         try { if (reader.IsDBNull(ECMECMDriveID) == false) { ecm.ECMECMDriveID = reader.GetInt32(ECMECMDriveID); } } catch { Console.WriteLine("Data convert problem with ECMECMDriveID"); }
                         try { if (reader.IsDBNull(ECMEmployeeCommencement_Date) == false) { ecm.ECMEmployeeCommencement_Date = reader.GetDateTime(ECMEmployeeCommencement_Date); } } catch { Console.WriteLine("Data convert problem with ECMEmployeeCommencement_Date"); }
                         try { if (reader.IsDBNull(ECMEmployeeEmployee_Given_Name) == false) { ecm.ECMEmployeeEmployee_Given_Name = reader.GetString(ECMEmployeeEmployee_Given_Name); } } catch { Console.WriteLine("Data convert problem with ECMEmployeeEmployee_Given_Name"); }
@@ -1178,7 +1172,6 @@ namespace caMigrateEcm
 
 
         }
-
         private static Record GetFolderUri(string function, string activity, Database db)
         {
             Record r = null;

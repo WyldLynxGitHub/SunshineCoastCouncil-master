@@ -61,7 +61,9 @@ namespace MasterECMCheck
                             //Console.WriteLine("After set parameters: " + intECMDocumentSetID);
                             //Console.ReadLine();
                             //Console.WriteLine("ECM " + reader.GetInt32(ECMDocumentSetID).ToString() + " " + reader.GetString(ECMOrigbatch) + " " + reader.GetInt32(ECMmaxversion).ToString());
-                            Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, reader.GetInt32(ECMDocumentSetID).ToString());
+                            string strRecId = reader.GetInt32(ECMDocumentSetID).ToString();
+                            string docLoc = CheckAttachment(strRecId, strECMOrigbatch);
+                            Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, strRecId);
                             //new Record(db, );
                             if (r != null)
                             {
@@ -74,26 +76,28 @@ namespace MasterECMCheck
                                 else
                                 {
                                     //Console.WriteLine("Record but no doc");
-                                    string docLoc = CheckAttachment(r.Number, strECMOrigbatch);
+                                    
                                     //Console.WriteLine("Doc location: "+ docLoc);
                                     //Console.ReadLine();
                                     if (File.Exists(docLoc))
                                     {
                                         //Console.WriteLine("Doc exists, go add it: ");
-                                        if (AddDocument(r.Uri, docLoc, db))
-                                        {
-                                            Console.WriteLine("File added to: " + r.Number);
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("File could not be added to: " + r.Number);
-                                            UpdateMasterinRMnoDoc(r.Number, r);
-                                        }
+                                        Console.WriteLine("File found and available: " + r.Number);
+                                        UpdateMasterinRMnoDoc(r.Number, r,0);
+                                        //if (AddDocument(r.Uri, docLoc, db))
+                                        //{
+                                        //    Console.WriteLine("File added to: " + r.Number);
+                                        //}
+                                        //else
+                                        //{
+                                        //    Console.WriteLine("File could not be added to: " + r.Number);
+                                        //    UpdateMasterinRMnoDoc(r.Number, r);
+                                        //}
                                     }
                                     else
                                     {
                                         Console.WriteLine("File could not be found: " + r.Number+" - "+ docLoc);
-                                        UpdateMasterinRMnoDoc(r.Number, r);
+                                        UpdateMasterinRMnoDoc(r.Number, r,1);
                                     }
                                     
                                     iEcmNoFile++;
@@ -103,9 +107,17 @@ namespace MasterECMCheck
                             }
                             else
                             {
-                                Console.WriteLine("ECM record not created");
                                 iEcmNotCreated++;
-                                UpdateMasterNoRm(intECMDocumentSetID.ToString());
+                                if (File.Exists(docLoc))
+                                {
+                                    Console.WriteLine("ECM record not created but file exists");
+                                    UpdateMasterNoRm(intECMDocumentSetID.ToString(),0);
+                                }
+                                else
+                                {
+                                    Console.WriteLine("ECM record not created and no file exists/");
+                                    UpdateMasterNoRm(intECMDocumentSetID.ToString(), 1);
+                                }
                             }
                         }
                     }
@@ -117,60 +129,62 @@ namespace MasterECMCheck
             //
         }
 
-        private static bool AddDocument(long uri, string docLoc, Database db)
-        {
-            //Console.WriteLine("Add document:");
-            Record r = new Record(db, uri);
-            try
-            {
-                InputDocument doc = new InputDocument();
-                doc.SetAsFile(docLoc);
-                r.SetDocument(doc, false, false, "");
-                r.Save();
-                Console.WriteLine("Add document saved ok:");
-                UpdateMasterinRM(r.Number, r);
-                return true;
+        //private static bool AddDocument(long uri, string docLoc, Database db)
+        //{
+        //    //Console.WriteLine("Add document:");
+        //    Record r = new Record(db, uri);
+        //    try
+        //    {
+        //        InputDocument doc = new InputDocument();
+        //        doc.SetAsFile(docLoc);
+        //        r.SetDocument(doc, false, false, "");
+        //        r.Save();
+        //        Console.WriteLine("Add document saved ok:");
+        //        UpdateMasterinRM(r.Number, r);
+        //        return true;
                 
-            }
-            catch (Exception exp)
-            {
-                UpdateMasterinRMnoDoc(r.Number, r);
-                Loggitt(exp.Message.ToString(), "Add doc to Eddie issue: "+docLoc);
-                return false;
-            }
-        }
+        //    }
+        //    catch (Exception exp)
+        //    {
+        //        UpdateMasterinRMnoDoc(r.Number, r);
+        //        Loggitt(exp.Message.ToString(), "Add doc to Eddie issue: "+docLoc);
+        //        return false;
+        //    }
+        //}
 
         private static void UpdateMasterinRM(string recnum, Record r)
         {
                 long ruri = r.Uri;
                 int rRev = r.RevisionNumber;
                 //"Select DocumentSetID, Origbatch, ClassName, maxversion from ECM_MasterCheck"
-                string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, RMUri=@rmuri, RmRevisions=@ver WHERE DocumentSetID=@docsetid";
+                string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, RMUri=@rmuri, RmRevisions=@ver, Issue=@issue WHERE DocumentSetID=@docsetid";
                 SqlConnection con = new SqlConnection(strCon);
                 SqlCommand cmd = new SqlCommand(SQL, con);
                 cmd.Parameters.AddWithValue("@docsetid", recnum);
                 cmd.Parameters.AddWithValue("@now", DateTime.Now);
                 cmd.Parameters.AddWithValue("@rmuri", ruri);
                 cmd.Parameters.AddWithValue("@ver", rRev);
-                con.Open();
+                cmd.Parameters.AddWithValue("@issue", 0);
+            con.Open();
             cmd.ExecuteNonQuery();
                 con.Close();
 
         }
-        private static void UpdateMasterNoRm(string recnum)
+        private static void UpdateMasterNoRm(string recnum, int prob)
         {
-                string SQL = "UPDATE ECM_MasterCheck SET Checked=@now WHERE DocumentSetID=@docsetid";
+                string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, Issue=@issue WHERE DocumentSetID=@docsetid";
                 SqlConnection con = new SqlConnection(strCon);
                 SqlCommand cmd = new SqlCommand(SQL, con);
                 cmd.Parameters.AddWithValue("@docsetid", recnum);
                 cmd.Parameters.AddWithValue("@now", DateTime.Now);
-                //cmd.Parameters.AddWithValue("@rmuri", ruri);
-                //cmd.Parameters.AddWithValue("@ver", rRev);
-                con.Open();
+                cmd.Parameters.AddWithValue("@issue", prob);
+            //cmd.Parameters.AddWithValue("@rmuri", ruri);
+            //cmd.Parameters.AddWithValue("@ver", rRev);
+            con.Open();
             cmd.ExecuteNonQuery();
                 con.Close();
         }
-        private static void UpdateMasterinRMnoDoc(string recnum, Record r)
+        private static void UpdateMasterinRMnoDoc(string recnum, Record r, int prob)
         {
             long ruri = r.Uri;
             int rRev = 0;
@@ -182,7 +196,7 @@ namespace MasterECMCheck
             cmd.Parameters.AddWithValue("@now", DateTime.Now);
             cmd.Parameters.AddWithValue("@rmuri", ruri);
             cmd.Parameters.AddWithValue("@ver", rRev);
-            cmd.Parameters.AddWithValue("@issue", 1);
+            cmd.Parameters.AddWithValue("@issue", prob);
             con.Open();
             cmd.ExecuteNonQuery();
             con.Close();
