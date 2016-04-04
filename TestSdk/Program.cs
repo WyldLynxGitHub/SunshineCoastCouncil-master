@@ -127,6 +127,13 @@ namespace TestSdk
                             rec.SetFieldValue(fdPropertyAddress, new UserFieldValue(t1.PropertyAddress));
                             Classification c = new Classification(db, 2616);
                             rec.Classification = c;
+                            Location loc = new Location(db, 43);
+                            rec.SetAssignee(loc);
+                            //rec.assig
+
+
+
+
                             rec.Save();
                             t1.EddieUri = rec.Uri;
                             t1.EddieRecordUrl = rec.WebURL;

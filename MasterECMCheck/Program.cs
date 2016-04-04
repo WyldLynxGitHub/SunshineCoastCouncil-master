@@ -12,6 +12,13 @@ namespace MasterECMCheck
 {
     class Program
     {
+        class ECM
+        {
+            public int ECMDocumentSetID { get; set; }
+            public string ECMOrigbatch { get; set; }
+            public string RecId { get; set; }
+            public string docLoc { get; set; }
+        }
         public static string strCon;
         static void Main(string[] args)
         {
@@ -22,184 +29,210 @@ namespace MasterECMCheck
             int iEcmNotCreated;
             strCon = "Data Source=Cl1025;Initial Catalog=StagingMove;Integrated Security=True";
             //strCon = "Data Source=MSI-GS60;Initial Catalog=ECMStage;Integrated Security=True";
-            //string sds = "Select DocumentSetID, Origbatch, ClassName, maxversion from ECM_MasterCheck Where OrigBatch = 'Linked To Application' and checked is not null and rmuri is not null and RmRevisions = 0 order by DocumentSetID OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY";
+            string sds = "Select DocumentSetID, Origbatch, ClassName, maxversion from ECM_MasterCheck Where OrigBatch = 'Extract Remainder' and rmuri is null order by DocumentSetID";
             //Console.WriteLine("Enter to proceed");
             //Console.ReadLine();
+            List<ECM> lstEcm = new List<ECM>();
+            DataTable dt = new DataTable();
             using (SqlConnection con = new SqlConnection(strCon))
             {
                 con.Open();
                 //Console.WriteLine("Enter to proceed - conn open: "+con.Database);
                 //Console.ReadLine();
                 Console.WriteLine("Enter SQL statement:");
-                using (SqlCommand command = new SqlCommand(Console.ReadLine(), con))
+
+
+                //
+                using (SqlCommand command = new SqlCommand(sds, con))
                 {
+
                     DataSet dataSet = new DataSet();
-                    DataTable dt = new DataTable();          
+                    
                     SqlDataAdapter da = new SqlDataAdapter();
                     da.SelectCommand = command;
                     da.Fill(dt);
-                    //Console.WriteLine("Enter to proceed - dt filled: " + dt.Rows.Count.ToString());
+                    Console.WriteLine("Datatable complete: Rows "+dt.Rows.Count.ToString());
+                    //foreach (DataRow dr in dt.Rows)
+                    //{
+                    //    foreach (DataColumn dc in dt.Columns)
+                    //    {
+                    //        var field1 = dr[dc].ToString();
+                    //        Console.WriteLine("Row no: " + field1);
+
+                    //    }
+                    //    string sdsd s= dr.Field<string>(0);
+                    //}
                     //Console.ReadLine();
-                    //Console.WriteLine("Before reader:");
-                    SqlDataReader reader = command.ExecuteReader();
-                    int ECMDocumentSetID = reader.GetOrdinal("DocumentSetID");
-                    int ECMOrigbatch = reader.GetOrdinal("Origbatch");
-                    int ECMClassName = reader.GetOrdinal("ClassName");
-                    int ECMmaxversion = reader.GetOrdinal("maxversion");
-                    //int ECMVolumeUpdatable = reader.GetOrdinal("maxversion");
+                    //
+                    //using (SqlDataReader reader = command.ExecuteReader())
+                    //{
+                    //    int ECMDocumentSetID = reader.GetOrdinal("DocumentSetID");
+                    //    int ECMOrigbatch = reader.GetOrdinal("Origbatch");
+                    //    int ECMClassName = reader.GetOrdinal("ClassName");
+                    //    int ECMmaxversion = reader.GetOrdinal("maxversion");
+                    //    //int ECMVolumeUpdatable = reader.GetOrdinal("maxversion");
                     iEcmCreated = 0;
                     iEcmNoFile = 0;
                     iEcmNotCreated = 0;
-                    using (Database db = new Database())
+                    //    Console.WriteLine("Start reading SQL");
+                    //    while (reader.Read())
+                    //    {
+                    //        ECM ecm = new ECM();
+                    //        ecm.ECMDocumentSetID= reader.GetInt32(ECMDocumentSetID);
+                    //        ecm.ECMOrigbatch= reader.GetString(ECMOrigbatch);
+                    //        ecm.RecId= reader.GetInt32(ECMDocumentSetID).ToString();
+                    //        ecm.docLoc= CheckAttachment(reader.GetInt32(ECMDocumentSetID).ToString(), reader.GetString(ECMOrigbatch));
+                    //        lstEcm.Add(ecm);
+                    //        Console.WriteLine("Adding slq to list: " + reader.GetInt32(ECMDocumentSetID).ToString());
+                    //    }
+                    //    Console.WriteLine("Finished reading Sql - count: " + lstEcm.Count().ToString());
+                    //}
+                }
+            }
+            
+
+            using (Database db = new Database())
+            {
+                //foreach (ECM ecm in lstEcm)
+                foreach (DataRow dr in dt.Rows)
+                {
+                    Console.WriteLine("Check ecm record: " + dr.Field<Int32>(0).ToString());
+                    var sDocLoc = CheckAttachment(dr.Field<Int32>(0).ToString(), dr.Field<string>(1));
+                    //}
+                    Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, dr.Field<Int32>(0).ToString());
+                    //new Record(db, );
+                    if (r != null)
                     {
-                        //Console.WriteLine("After RM database, Reader count: "+reader.VisibleFieldCount.ToString());
-                        //Console.ReadLine();
-                        while (reader.Read())
+                        if (r.IsElectronic)
                         {
-                            var intECMDocumentSetID = reader.GetInt32(ECMDocumentSetID);
-                            var strECMOrigbatch = reader.GetString(ECMOrigbatch);
-                            //Console.WriteLine("After set parameters: " + intECMDocumentSetID);
-                            //Console.ReadLine();
-                            //Console.WriteLine("ECM " + reader.GetInt32(ECMDocumentSetID).ToString() + " " + reader.GetString(ECMOrigbatch) + " " + reader.GetInt32(ECMmaxversion).ToString());
-                            string strRecId = reader.GetInt32(ECMDocumentSetID).ToString();
-                            string docLoc = CheckAttachment(strRecId, strECMOrigbatch);
-                            Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, strRecId);
-                            //new Record(db, );
-                            if (r != null)
+                            Console.WriteLine("Confirm record created: " + r.Number + " and file attached.");
+                            iEcmCreated++;
+                            UpdateMasterinRM(r);
+                        }
+                        else
+                        {
+                            if (File.Exists(sDocLoc))
                             {
-                                if (r.IsElectronic)
-                                {
-                                    Console.WriteLine("Confirm record created: " + r.Number + " and file attached.");
-                                    iEcmCreated++;
-                                    UpdateMasterinRM(intECMDocumentSetID.ToString(), r);
-                                }
-                                else
-                                {
-                                    //Console.WriteLine("Record but no doc");
-                                    
-                                    //Console.WriteLine("Doc location: "+ docLoc);
-                                    //Console.ReadLine();
-                                    if (File.Exists(docLoc))
-                                    {
-                                        //Console.WriteLine("Doc exists, go add it: ");
-                                        Console.WriteLine("File found and available: " + r.Number);
-                                        UpdateMasterinRMnoDoc(r.Number, r,0);
-                                        //if (AddDocument(r.Uri, docLoc, db))
-                                        //{
-                                        //    Console.WriteLine("File added to: " + r.Number);
-                                        //}
-                                        //else
-                                        //{
-                                        //    Console.WriteLine("File could not be added to: " + r.Number);
-                                        //    UpdateMasterinRMnoDoc(r.Number, r);
-                                        //}
-                                    }
-                                    else
-                                    {
-                                        Console.WriteLine("File could not be found: " + r.Number+" - "+ docLoc);
-                                        UpdateMasterinRMnoDoc(r.Number, r,1);
-                                    }
-                                    
-                                    iEcmNoFile++;
-                                    //UpdateMasterinRMnoDoc(intECMDocumentSetID.ToString(), r);
-                                }
-                                
+                                Console.WriteLine("File found and available: " + r.Number);
+                                UpdateMasterinRMnoDoc(r, 0);
                             }
                             else
                             {
-                                iEcmNotCreated++;
-                                if (File.Exists(docLoc))
-                                {
-                                    Console.WriteLine("ECM record not created but file exists");
-                                    UpdateMasterNoRm(intECMDocumentSetID.ToString(),0);
-                                }
-                                else
-                                {
-                                    Console.WriteLine("ECM record not created and no file exists/");
-                                    UpdateMasterNoRm(intECMDocumentSetID.ToString(), 1);
-                                }
+                                Console.WriteLine("File could not be found: " + r.Number + " - " + sDocLoc);
+                                UpdateMasterinRMnoDoc(r, 1);
                             }
+
+                            iEcmNoFile++;
+                            //UpdateMasterinRMnoDoc(intECMDocumentSetID.ToString(), r);
+                        }
+
+                    }
+                    else
+                    {
+                        iEcmNotCreated++;
+                        if (File.Exists(sDocLoc))
+                        {
+                            Console.WriteLine("ECM record not created but file exists");
+                            UpdateMasterNoRm(dr.Field<Int32>(0).ToString(), 0);
+                        }
+                        else
+                        {
+                            Console.WriteLine("ECM record not created and no file exists/");
+                            UpdateMasterNoRm(dr.Field<Int32>(0).ToString(), 1);
                         }
                     }
+                    //}
                 }
             }
+            //    }
+            //}
             //}
             Console.WriteLine("Summary:" + Environment.NewLine + "ECM complete migrations: " + iEcmCreated.ToString() + Environment.NewLine + "ECM Created in Eddie, no attachment: " + iEcmNoFile.ToString() + Environment.NewLine + "ECM Not Created: " + iEcmNotCreated.ToString());
             Console.ReadLine();
             //
         }
 
-        //private static bool AddDocument(long uri, string docLoc, Database db)
-        //{
-        //    //Console.WriteLine("Add document:");
-        //    Record r = new Record(db, uri);
-        //    try
-        //    {
-        //        InputDocument doc = new InputDocument();
-        //        doc.SetAsFile(docLoc);
-        //        r.SetDocument(doc, false, false, "");
-        //        r.Save();
-        //        Console.WriteLine("Add document saved ok:");
-        //        UpdateMasterinRM(r.Number, r);
-        //        return true;
-                
-        //    }
-        //    catch (Exception exp)
-        //    {
-        //        UpdateMasterinRMnoDoc(r.Number, r);
-        //        Loggitt(exp.Message.ToString(), "Add doc to Eddie issue: "+docLoc);
-        //        return false;
-        //    }
-        //}
 
-        private static void UpdateMasterinRM(string recnum, Record r)
+        private static void UpdateMasterinRM(Record r)
         {
                 long ruri = r.Uri;
                 int rRev = r.RevisionNumber;
                 //"Select DocumentSetID, Origbatch, ClassName, maxversion from ECM_MasterCheck"
                 string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, RMUri=@rmuri, RmRevisions=@ver, Issue=@issue WHERE DocumentSetID=@docsetid";
-                SqlConnection con = new SqlConnection(strCon);
-                SqlCommand cmd = new SqlCommand(SQL, con);
-                cmd.Parameters.AddWithValue("@docsetid", recnum);
-                cmd.Parameters.AddWithValue("@now", DateTime.Now);
-                cmd.Parameters.AddWithValue("@rmuri", ruri);
-                cmd.Parameters.AddWithValue("@ver", rRev);
-                cmd.Parameters.AddWithValue("@issue", 0);
-            con.Open();
-            cmd.ExecuteNonQuery();
-                con.Close();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(strCon))
+                {
+                    using (SqlCommand cmd = new SqlCommand(SQL, con))
+                    {
+                        cmd.Parameters.AddWithValue("@docsetid", r.Number);
+                        cmd.Parameters.AddWithValue("@now", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@rmuri", ruri);
+                        cmd.Parameters.AddWithValue("@ver", rRev);
+                        cmd.Parameters.AddWithValue("@issue", 0);
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine("SQL error: " + exp.Message.ToString());
+            }
 
         }
         private static void UpdateMasterNoRm(string recnum, int prob)
         {
                 string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, Issue=@issue WHERE DocumentSetID=@docsetid";
-                SqlConnection con = new SqlConnection(strCon);
-                SqlCommand cmd = new SqlCommand(SQL, con);
-                cmd.Parameters.AddWithValue("@docsetid", recnum);
-                cmd.Parameters.AddWithValue("@now", DateTime.Now);
-                cmd.Parameters.AddWithValue("@issue", prob);
-            //cmd.Parameters.AddWithValue("@rmuri", ruri);
-            //cmd.Parameters.AddWithValue("@ver", rRev);
-            con.Open();
-            cmd.ExecuteNonQuery();
-                con.Close();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(strCon))
+                {
+                    using (SqlCommand cmd = new SqlCommand(SQL, con))
+                    {
+                        cmd.Parameters.AddWithValue("@docsetid", recnum);
+                        cmd.Parameters.AddWithValue("@now", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@issue", prob);
+                        //cmd.Parameters.AddWithValue("@rmuri", ruri);
+                        //cmd.Parameters.AddWithValue("@ver", rRev);
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine("SQL error: " + exp.Message.ToString());
+            }
+                //con.Close();
         }
-        private static void UpdateMasterinRMnoDoc(string recnum, Record r, int prob)
+        private static void UpdateMasterinRMnoDoc(Record r, int prob)
         {
             long ruri = r.Uri;
             int rRev = 0;
             //"Select DocumentSetID, Origbatch, ClassName, maxversion from ECM_MasterCheck"
             string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, RMUri=@rmuri, RmRevisions=@ver, Issue=@issue WHERE DocumentSetID=@docsetid";
-            SqlConnection con = new SqlConnection(strCon);
-            SqlCommand cmd = new SqlCommand(SQL, con);
-            cmd.Parameters.AddWithValue("@docsetid", recnum);
-            cmd.Parameters.AddWithValue("@now", DateTime.Now);
-            cmd.Parameters.AddWithValue("@rmuri", ruri);
-            cmd.Parameters.AddWithValue("@ver", rRev);
-            cmd.Parameters.AddWithValue("@issue", prob);
-            con.Open();
-            cmd.ExecuteNonQuery();
-            con.Close();
+            try
+            {
+                using (SqlConnection con = new SqlConnection(strCon))
+                {
+                    using (SqlCommand cmd = new SqlCommand(SQL, con))
+                    {
+                        cmd.Parameters.AddWithValue("@docsetid", r.Number);
+                        cmd.Parameters.AddWithValue("@now", DateTime.Now);
+                        cmd.Parameters.AddWithValue("@rmuri", ruri);
+                        cmd.Parameters.AddWithValue("@ver", rRev);
+                        cmd.Parameters.AddWithValue("@issue", prob);
+                        con.Open();
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+                //con.Close();
+            }
+            catch (Exception exp)
+            {
+                Console.WriteLine("SQL error: " + exp.Message.ToString());
+            }
 
         }
         private static string CheckAttachment(string filelocUri, string Batch)
@@ -209,7 +242,7 @@ namespace MasterECMCheck
             //Select * from [Elai] Where ID in(SELECT MIN(ID) AS ID FROM [Elai] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 Order by [ID] OFFSET 1457802 ROWS FETCH NEXT 5 ROWS ONLY
             //Select [Volume:StorageLocation], [Volume:Filename] from [Extract Public Indexed] Where ID in(SELECT MIN(ID) AS ID FROM [Extract Public Indexed] GROUP BY [STD:DocumentID]) and [STD: Version] = 1 and [STD:DocumentSetID] = " + Convert.ToInt32(filelocUri)
             string sqlBatch = null;
-            sqlBatch = "Select [Volume:StorageLocation], [Volume:Filename] from Elai Where ID in (SELECT MIN(ID) AS ID FROM Elai GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] = " + Convert.ToInt32(filelocUri);
+            sqlBatch = "Select [Volume:StorageLocation], [Volume:Filename] from eri Where ID in (SELECT MIN(ID) AS ID FROM eri GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] = " + Convert.ToInt32(filelocUri);
             string strStorageLoc = null;
             //switch (Batch)
             //{
@@ -242,11 +275,11 @@ namespace MasterECMCheck
                 //Console.ReadLine();
                 using (SqlCommand command = new SqlCommand(sqlBatch, con1))
                 {
-                    DataSet dataSet = new DataSet();
-                    DataTable dt = new DataTable();
-                    SqlDataAdapter da = new SqlDataAdapter();
-                    da.SelectCommand = command;
-                    da.Fill(dt);
+                    //DataSet dataSet = new DataSet();
+                    //DataTable dt = new DataTable();
+                    //SqlDataAdapter da = new SqlDataAdapter();
+                    //da.SelectCommand = command;
+                    //da.Fill(dt);
                     SqlDataReader reader = command.ExecuteReader();
                     //int ECMStorageLocation = reader.GetOrdinal("[Volume:StorageLocation]");
                     //int ECMFilename = reader.GetOrdinal("[Volume:Filename]");

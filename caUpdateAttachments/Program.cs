@@ -1,31 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HP.HPTRIM.SDK;
-using System.IO;
-using System.Data.SqlClient;
-using System.Data;
-using System.Threading;
-
-namespace caCreateEcmV2
-{
-
+﻿using HP.HPTRIM.SDK;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using HP.HPTRIM.SDK;
-using System.IO;
-using System.Data.SqlClient;
-using System.Data;
-using System.Threading;
 
-namespace caCreateEcmV2
+namespace caUpdateAttachments
 {
-
     class Program
     {
         public static string strCon;
@@ -160,15 +144,15 @@ namespace caCreateEcmV2
             using (SqlConnection con = new SqlConnection("Data Source=Cl1025;Initial Catalog=StagingMove;Integrated Security=True"))
             {
                 con.Open();
-                //Console.WriteLine("Connected to SQL 1025");
-                //Console.WriteLine("Export Batch?");
-                //string strBatch = Console.ReadLine();
-                //Console.WriteLine("Offset?");
-                //strOffset = Console.ReadLine();
-                //Console.WriteLine("Fetch?");
-                //strFetch = Console.ReadLine();
+                Console.WriteLine("Connected to SQL 1025");
+                Console.WriteLine("Export Batch?");
+                string strBatch = Console.ReadLine();
+                Console.WriteLine("Offset?");
+                strOffset = Console.ReadLine();
+                Console.WriteLine("Fetch?");
+                strFetch = Console.ReadLine();
                 Console.WriteLine("Show detailed messages:");
-                switch(Console.ReadLine())
+                switch (Console.ReadLine())
                 {
                     case "y":
                         bDetailMsg = true;
@@ -178,47 +162,55 @@ namespace caCreateEcmV2
                         break;
                 }
                 string strsql = null;
-                    //switch (strBatch)
-                    //{
-                    //    case "ep":
-                    //        strsql = "Select * from [Extract Public Indexed] Where ID in(SELECT MIN(ID) AS ID FROM [Extract Public Indexed] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public' and rmuri is null and Pass = 2) Order by [ID] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    //        break;
-                    //    case "epz":
-                    //        strsql = "Select * from [Extract Public Zip Indexed] Where ID in(SELECT MIN(ID) AS ID FROM [Extract Public Zip Indexed] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public Zip' and rmuri is null and Pass = 2) Order by [ID] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    //        break;
-                    //    case "elai":
-                    //        strsql = "Select * from [Elai] Where ID in(SELECT MIN(ID) AS ID FROM [Elai] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Application' and rmuri is null and Pass = 2) Order by [ID] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    //        break;
-                    //    case "elpi":
-                    //        strsql = "Select * from [Elpi] Where ID in(SELECT MIN(ID) AS ID FROM [Elpi] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Property' and rmuri is null and Pass = 2) Order by [ID] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    //        break;
-                    //    case "eri":
-                    //        strsql = "Select * from [eri] Where ID in(SELECT MIN(ID) AS ID FROM [eri] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Remainder' and rmuri is null and Pass = 2) Order by [ID] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    //        break;
-                    //}
-                    strsql = "SELECT * FROM  [Extract Public Zip Indexed] AS C INNER JOIN dbo.ECM_MasterCheck AS M ON C.[STD:DocumentSetID] = M.DocumentSetID WHERE (M.RMUri IS NULL) AND C.ID IN (SELECT MIN(ID) AS ID FROM [Extract Public Zip Indexed] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and Pass = 1 ORDER BY C.[STD:DocumentSetID]";
-                if(strsql==null)
+                switch (strBatch)
+                {
+                    case "ep":
+                        //strsql = "Select * from [Extract Public Indexed] Where ID in(SELECT MIN(ID) AS ID FROM [Extract Public Indexed] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public' and RMUri is not null and RmRevisions = 0) Order by [STD:DocumentSetID] Desc OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        //strsql = "Select * from [Extract Public Indexed] Where [STD:Version] > 1 and [STD:DocumentSetID] = 19497747 order by [STD:DocumentID]";
+                        strsql = "Select * from [Extract Public DIFF] Where ID in(SELECT MIN(ID) AS ID FROM[Extract Public DIFF] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public' and RMUri is not null and RmRevisions = 1) Order by [STD:DocumentSetID] Desc, [STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        break;
+                    case "epz":
+                        //strsql = "Select * from [Extract Public Zip Indexed] Where ID in(SELECT MIN(ID) AS ID FROM [Extract Public Zip Indexed] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public Zip' and RMUri is not null and RmRevisions = 0) Order by [STD:DocumentSetID] Desc OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        //strsql = "Select * from ECM_MasterCheck where OrigBatch = 'Extract Public Zip' and RMUri is not null and RmRevisions = 0";
+                        strsql = "Select * from [Extract Public Zip DIFF] Where ID in(SELECT MIN(ID) AS ID FROM[Extract Public Zip DIFF] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Public Zip' and RMUri is not null and RmRevisions = 1) Order by [STD:DocumentSetID] Desc, [STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+
+                        break;
+                    case "elai":
+                        //strsql = "Select * from [Elai] Where ID in(SELECT MIN(ID) AS ID FROM [Elai] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Application' and RMUri is not null and RmRevisions = 0) Order by [STD:DocumentSetID] Desc OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        //strsql = "Select * from ECM_MasterCheck where OrigBatch = 'Linked To Application' and RMUri is not null and RmRevisions = 0";
+                        strsql = "Select * from [Extract Linked To Application DIFF] Where ID in(SELECT MIN(ID) AS ID FROM[Extract Linked To Application DIFF] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Application' and RMUri is not null and RmRevisions = 1) Order by [STD:DocumentSetID] Desc, [STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+
+                        break;
+                    case "elpi":
+                        //strsql = "Select * from [Elpi] Where ID in(SELECT MIN(ID) AS ID FROM [Elpi] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Property' and RMUri is not null and RmRevisions = 0) Order by [STD:DocumentSetID] Desc OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        //strsql = "Select * from ECM_MasterCheck where OrigBatch = 'Linked To Property' and RMUri is not null and RmRevisions = 0";
+                        strsql = "Select * from [Extract Linked To Property DIFF] Where ID in(SELECT MIN(ID) AS ID FROM[Extract Linked To Property DIFF] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Linked To Property' and RMUri is not null and RmRevisions = 1) Order by [STD:DocumentSetID] Desc, [STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        break;
+                    case "eri":
+                        //strsql = "Select * from [eri] Where ID in(SELECT MIN(ID) AS ID FROM [eri] GROUP BY [STD:DocumentID]) and [STD:Version] = 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Remainder' and RMUri is not null and RmRevisions = 0) Order by [STD:DocumentSetID] Desc OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                        //strsql = "Select * from ECM_MasterCheck where OrigBatch = 'Extract Remainder' and RMUri is not null and RmRevisions = 0";
+                        strsql = "Select * from [Extract Remainder DIFF] Where ID in(SELECT MIN(ID) AS ID FROM[Extract Remainder DIFF] GROUP BY [STD:DocumentID]) and [STD:Version] > 1 and [STD:DocumentSetID] in (Select DocumentSetID from ECM_MasterCheck Where OrigBatch = 'Extract Remainder' and RMUri is not null and RmRevisions = 1) Order by [STD:DocumentSetID] Desc, [STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+
+                        break;
+                }
+                if (strsql == null)
                 {
                     Console.WriteLine("SQL is blank");
                     Console.ReadLine();
                     return;
                 }
+                else
+                {
+                    Console.WriteLine("SQL "+strsql);
+                }
                 using (SqlCommand command = new SqlCommand(strsql, con))
                 {
                     Console.WriteLine("Query connected");
-                    //DataSet dataSet = new DataSet();
-                    //DataTable dt = new DataTable();
-                    //SqlDataAdapter da = new SqlDataAdapter();
-                    //da.SelectCommand = command;
-                    //da.Fill(dt);
-                    //    Console.WriteLine("Datatable complete");
-                    //foreach(DataRow dr in dt.Rows)
-                    //    {
-                    //        foreach (DataColumn dc in dt.Columns)
-                    //        {
-                    //            var field1 = dr[dc].ToString();
-                    //        }
-                    //    }
+                    DataSet dataSet = new DataSet();
+                    DataTable dt = new DataTable();
+                    SqlDataAdapter da = new SqlDataAdapter();
+                    da.SelectCommand = command;
+                    da.Fill(dt);
                     SqlDataReader reader = command.ExecuteReader();
 
                     int ECMSTDDocumentSetID = reader.GetOrdinal("STD:DocumentSetID");
@@ -343,22 +335,10 @@ namespace caCreateEcmV2
                         ECMMigration ecm = new ECMMigration();
                         ecm.DocSetID = reader.GetInt32(ECMSTDDocumentSetID).ToString();
                         ecm.ECMDescription = reader.GetString(ECMSTDDocumentDescription);
-                            //ecm.ECMBCSFunction_Name = reader.GetString(ECMBCSFunction_Name);
-                            if (reader.IsDBNull(ECMBCSFunction_Name) == false)
-                            {
-                                ecm.ECMBCSFunction_Name = reader.GetString(ECMBCSFunction_Name);
-                            }
-                            //ecm.ECMBCSActivity_Name = reader.GetString(ECMBCSActivity_Name);
-                            if (reader.IsDBNull(ECMBCSActivity_Name) == false)
-                            {
-                                ecm.ECMBCSActivity_Name = reader.GetString(ECMBCSActivity_Name);
-                            }
-                            //ecm.ECMBCSSubject_Name = reader.GetString(ECMBCSSubject_Name);
-                            if (reader.IsDBNull(ECMBCSSubject_Name) == false)
-                            {
-                                ecm.ECMBCSSubject_Name = reader.GetString(ECMBCSSubject_Name);
-                            }
-                            ecm.ECMSTDVersion = reader.GetInt16(ECMSTDVersion);
+                        ecm.ECMBCSFunction_Name = reader.GetString(ECMBCSFunction_Name);
+                        ecm.ECMBCSActivity_Name = reader.GetString(ECMBCSActivity_Name);
+                        ecm.ECMBCSSubject_Name = reader.GetString(ECMBCSSubject_Name);
+                        ecm.ECMSTDVersion = reader.GetInt16(ECMSTDVersion);
                         //AutoCreate
                         try { if (reader.IsDBNull(ECMApplicationRAM_Application_Number) == false) { ecm.ECMApplicationRAM_Application_Number = reader.GetString(ECMApplicationRAM_Application_Number); } } catch { Console.WriteLine("Data convert problem with ECMApplicationRAM_Application_Number"); }
                         try { if (reader.IsDBNull(ECMBarCodeBarCodeString) == false) { ecm.ECMBarCodeBarCodeString = reader.GetString(ECMBarCodeBarCodeString); } } catch { Console.WriteLine("Data convert problem with ECMBarCodeBarCodeString"); }
@@ -481,7 +461,7 @@ namespace caCreateEcmV2
             int iCount = 0;
             TrimApplication.Initialize();
             //Parallel.ForEach(lstecm, new ParallelOptions { MaxDegreeOfParallelism = 6 }, (ecm) =>
-            
+
             DateTime dt1 = DateTime.Now;
 
             using (Database db = new Database())
@@ -601,217 +581,80 @@ namespace caCreateEcmV2
 
                 foreach (ECMMigration ecm in lstecm)
                 {
+                    
                     iCount++;
                     DateTime dt2 = DateTime.Now;
                     TimeSpan result = dt2 - dt1;
-                    Console.WriteLine("Processing {0} - Number {1} of {2}, time since start {3} - batch offset {4}, Fetch {5} ({6})", ecm.DocSetID, iCount.ToString(), strTotal,result.TotalMinutes.ToString(), strOffset,strFetch, (Convert.ToInt32(strOffset)+iCount).ToString());
+                    Console.WriteLine("Processing {0} - Number {1} of {2}, time since start {3} - batch offset {4}, Fetch {5} ({6})", ecm.DocSetID, iCount.ToString(), strTotal, result.TotalMinutes.ToString(), strOffset, strFetch, (Convert.ToInt32(strOffset) + iCount).ToString());
                     try
                     {
                         Record reccheck = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, ecm.DocSetID);
-                        //if (reccheck == null)
-                        //{
+                        if (reccheck != null)
+                        {
                             string strStorageLoc = FindMappedStorage(ecm.ECMVolumeStorageLocation) + "\\" + ecm.ECMVolumeFilename;
                             if (File.Exists(strStorageLoc))
                             {
-                                Record reccont = GetFolderUri(ecm.ECMBCSFunction_Name + " - " + ecm.ECMBCSActivity_Name.Replace("-", "~"), ecm.ECMBCSSubject_Name, db);
-                                if (reccont != null)
+
+                                try
                                 {
-                                    string fTitle;
-                                    if (ecm.ECMDescription == null)
+                                    if (reccheck.DateRegistered <= reccheck.DateReceived)
                                     {
-                                        fTitle = "Record description from ECM Export is Null";
-                                        //strErrorCol = strErrorCol + "Ecm description to Title issue: Description Null for record no " + h.DocSetID.ToString() + Environment.NewLine;
-                                    }
-                                    else
-                                    {
-                                        if (ecm.ECMDescription.Length > 253)
-                                        {
-                                            fTitle = ecm.ECMDescription.Substring(0, 253);
-                                            //strErrorCol = strErrorCol + "Ecm description to Title issue: Description greater then 254 ch, description truncated for record no " + h.DocSetID.ToString() + Environment.NewLine;
-                                        }
-                                        else if (ecm.ECMDescription.Length < 1)
-                                        {
-                                            fTitle = "Record description from ECM Export is Empty";
-                                            //strErrorCol = strErrorCol + "Ecm description to Title issue: Description blank for record no " + h.DocSetID.ToString() + Environment.NewLine;
-                                        }
-                                        else
-                                        {
-                                            fTitle = ecm.ECMDescription;
-                                        }
+                                        DateTime tdtDateReceived = reccheck.DateReceived;
+                                        reccheck.DateRegistered = (TrimDateTime)tdtDateReceived.AddHours(1);
+                                        reccheck.Save();
                                     }
 
-                                Record rec = null;
-                                if (reccheck == null)
-                                {
-                                    rec = new Record(rt);
-                                    rec.Container = reccont;
+                                    InputDocument doc = new InputDocument();
+                                    doc.SetAsFile(strStorageLoc);
+                                    reccheck.SetDocument(doc, true, false, "Imported from ECM");
+                                    reccheck.Save();
+                                    deleteEcmSource(strStorageLoc);
+                                    Console.WriteLine("Record Updated: " + reccheck.Number);
+                                    UpdateMasterinRM(reccheck);
                                 }
-                                else
+                                catch (Exception exp)
                                 {
-                                    rec = reccheck;
-                                }
-
-
-
-                                    rec.Title = fTitle;
-                                    rec.DateCreated = (TrimDateTime)ecm.ECMSTDDocumentDate;
-                                    rec.SetNotes("Migrated from EMS T1", NotesUpdateType.AppendOnly);
-                                    rec.LongNumber = ecm.DocSetID;
-                                    //
-                                    rec.SetFieldValue(fd_ECMApplicationRAM_Application_Number, UserFieldValue.FromDotNetObject(ecm.ECMApplicationRAM_Application_Number));
-                                    rec.SetFieldValue(fd_ECMBarCodeBarCodeString, UserFieldValue.FromDotNetObject(ecm.ECMBarCodeBarCodeString));
-                                    rec.SetFieldValue(fd_ECMBCSRetention_Period, UserFieldValue.FromDotNetObject(ecm.ECMBCSRetention_Period));
-                                    rec.SetFieldValue(fd_ECMCaseCaseDescription, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseDescription));
-                                    rec.SetFieldValue(fd_ECMCaseCaseName, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseName));
-                                    rec.SetFieldValue(fd_ECMCaseCaseNumber, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseNumber));
-                                    rec.SetFieldValue(fd_ECMCaseCaseOfficer, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseOfficer));
-                                    rec.SetFieldValue(fd_ECMCaseCaseStatus, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseStatus));
-                                    rec.SetFieldValue(fd_ECMCaseCaseType, UserFieldValue.FromDotNetObject(ecm.ECMCaseCaseType));
-                                    rec.SetFieldValue(fd_ECMCaseEndDate, UserFieldValue.FromDotNetObject(ecm.ECMCaseEndDate));
-                                    rec.SetFieldValue(fd_ECMCaseStartDate, UserFieldValue.FromDotNetObject(ecm.ECMCaseStartDate));
-                                    //rec.SetFieldValue(fd_ECMCorrespondentDescription, UserFieldValue.FromDotNetObject(ecm.ECMCorrespondentDescription));
-                                    //rec.SetFieldValue(fd_ECMECMDriveID, UserFieldValue.FromDotNetObject(ecm.ECMECMDriveID));
-                                    rec.SetFieldValue(fd_ECMEmployeeCommencement_Date, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeCommencement_Date));
-                                    rec.SetFieldValue(fd_ECMEmployeeEmployee_Given_Name, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeEmployee_Given_Name));
-                                    rec.SetFieldValue(fd_ECMEmployeeEmployee_Surname, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeEmployee_Surname));
-                                    rec.SetFieldValue(fd_ECMEmployeeEmployeeCode, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeEmployeeCode));
-                                    rec.SetFieldValue(fd_ECmEmployeeHR_Case_Description, UserFieldValue.FromDotNetObject(ecm.ECmEmployeeHR_Case_Description));
-                                    rec.SetFieldValue(fd_ECMEmployeePreferred_Name, UserFieldValue.FromDotNetObject(ecm.ECMEmployeePreferred_Name));
-                                    rec.SetFieldValue(fd_ECMEmployeeStatus, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeStatus));
-                                    rec.SetFieldValue(fd_ECMEmployeeTermination_Date, UserFieldValue.FromDotNetObject(ecm.ECMEmployeeTermination_Date));
-                                    rec.SetFieldValue(fd_ECMFileName, UserFieldValue.FromDotNetObject(ecm.ECMFileName));
-                                    rec.SetFieldValue(fd_ECMFileNetFoldername, UserFieldValue.FromDotNetObject(ecm.ECMFileNetFoldername));
-                                    rec.SetFieldValue(fd_ECMHR_Case_Code, UserFieldValue.FromDotNetObject(ecm.ECMHR_Case_Code));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel1_Name, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel1_Name));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel2_Name, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel2_Name));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel3_Description, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel3_Description));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel3_Name, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel3_Name));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel4_Description, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel4_Description));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel4_Name, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel4_Name));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel5_Description, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel5_Description));
-                                    rec.SetFieldValue(fd_ECMInfoExpertLevel5_Name, UserFieldValue.FromDotNetObject(ecm.ECMInfoExpertLevel5_Name));
-                                    rec.SetFieldValue(fd_ECMInfringementInfringementID, UserFieldValue.FromDotNetObject(ecm.ECMInfringementInfringementID));
-                                    rec.SetFieldValue(fd_ECMNotes, UserFieldValue.FromDotNetObject(ecm.ECMNotes));
-                                    rec.SetFieldValue(fd_ECMPositionClose_Date, UserFieldValue.FromDotNetObject(ecm.ECMPositionClose_Date));
-                                    rec.SetFieldValue(fd_ECMPositionOpen_Date, UserFieldValue.FromDotNetObject(ecm.ECMPositionOpen_Date));
-                                    rec.SetFieldValue(fd_ECMPositionPosition_ID, UserFieldValue.FromDotNetObject(ecm.ECMPositionPosition_ID));
-                                    rec.SetFieldValue(fd_ECMPositionPosition_Title, UserFieldValue.FromDotNetObject(ecm.ECMPositionPosition_Title));
-                                    rec.SetFieldValue(fd_ECMPositionVacancy_ID, UserFieldValue.FromDotNetObject(ecm.ECMPositionVacancy_ID));
-                                    rec.SetFieldValue(fd_ECMPositionVacancy_Status, UserFieldValue.FromDotNetObject(ecm.ECMPositionVacancy_Status));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProject_Name, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProject_Name));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractContract_or_Activity_Desc, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractContract_or_Activity_Desc));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractContract_or_Activity_Name, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractContract_or_Activity_Name));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractContract_or_Activity_No, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractContract_or_Activity_No));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractEnd_Date, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractEnd_Date));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProject_Description, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProject_Description));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProject_End_Date, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProject_End_Date));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProject_Officer, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProject_Officer));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProject_Start_Date, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProject_Start_Date));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractProjectNo, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractProjectNo));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractResponsible_Officer, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractResponsible_Officer));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractStart_Date, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractStart_Date));
-                                    rec.SetFieldValue(fd_ECMProjectAndContractStatus, UserFieldValue.FromDotNetObject(ecm.ECMProjectAndContractStatus));
-                                    rec.SetFieldValue(fd_ECMPropertyHouse_No, UserFieldValue.FromDotNetObject(ecm.ECMPropertyHouse_No));
-                                    rec.SetFieldValue(fd_ECMPropertyHouse_No_Suffix, UserFieldValue.FromDotNetObject(ecm.ECMPropertyHouse_No_Suffix));
-                                    //rec.SetFieldValue(fd_ECMPropertyHouse_No_To, UserFieldValue.FromDotNetObject(ecm.ECMPropertyHouse_No_To));
-                                    rec.SetFieldValue(fd_ECMPropertyHouse_No_To_Suffix, UserFieldValue.FromDotNetObject(ecm.ECMPropertyHouse_No_To_Suffix));
-                                    rec.SetFieldValue(fd_ECMPropertyLocality_Name, UserFieldValue.FromDotNetObject(ecm.ECMPropertyLocality_Name));
-                                    rec.SetFieldValue(fd_ECMPropertyPostcode, UserFieldValue.FromDotNetObject(ecm.ECMPropertyPostcode));
-                                    rec.SetFieldValue(fd_ECMPropertyProperty_Name, UserFieldValue.FromDotNetObject(ecm.ECMPropertyProperty_Name));
-                                    rec.SetFieldValue(fd_ECMPropertyProperty_No, UserFieldValue.FromDotNetObject(ecm.ECMPropertyProperty_No));
-                                    rec.SetFieldValue(fd_ECMPropertyStreet_Name, UserFieldValue.FromDotNetObject(ecm.ECMPropertyStreet_Name));
-                                    rec.SetFieldValue(fd_ECMPropertyUnit_No, UserFieldValue.FromDotNetObject(ecm.ECMPropertyUnit_No));
-                                    rec.SetFieldValue(fd_ECMPropertyUnit_No_Suffix, UserFieldValue.FromDotNetObject(ecm.ECMPropertyUnit_No_Suffix));
-                                    //rec.SetFieldValue(fd_ECMreference, UserFieldValue.FromDotNetObject(ecm.ECMreference));
-                                    rec.SetFieldValue(fd_ECMRelatedDocDocSetID, UserFieldValue.FromDotNetObject(ecm.ECMRelatedDocDocSetID));
-                                    rec.SetFieldValue(fd_ECMSTDAllRevTitle, UserFieldValue.FromDotNetObject(ecm.ECMSTDAllRevTitle));
-                                    rec.SetFieldValue(fd_ECMSTDApplicationNo, UserFieldValue.FromDotNetObject(ecm.ECMSTDApplicationNo));
-                                    rec.SetFieldValue(fd_ECMSTDBusinessCode, UserFieldValue.FromDotNetObject(ecm.ECMSTDBusinessCode));
-                                    rec.SetFieldValue(fd_ECMSTDClassName, UserFieldValue.FromDotNetObject(ecm.ECMSTDClassName));
-                                    rec.SetFieldValue(fd_ECMSTDCorrespondant, UserFieldValue.FromDotNetObject(ecm.ECMSTDCorrespondant));
-                                    rec.SetFieldValue(fd_ECMSTDCustomerRequest, UserFieldValue.FromDotNetObject(ecm.ECMSTDCustomerRequest));
-                                    rec.SetFieldValue(fd_ECMSTDDateLastAccessed, UserFieldValue.FromDotNetObject(ecm.ECMSTDDateLastAccessed));
-                                    rec.SetFieldValue(fd_ECMSTDDateReceived, UserFieldValue.FromDotNetObject(ecm.ECMSTDDateReceived));
-                                    rec.SetFieldValue(fd_ECMSTDDateRegistered, UserFieldValue.FromDotNetObject(ecm.ECMSTDDateRegistered));
-                                    rec.SetFieldValue(fd_ECMSTDDeclaredDate, UserFieldValue.FromDotNetObject(ecm.ECMSTDDeclaredDate));
-                                    rec.SetFieldValue(fd_ECMSTDDestructionDue, UserFieldValue.FromDotNetObject(ecm.ECMSTDDestructionDue));
-                                    rec.SetFieldValue(fd_ECMSTDDocumentDate, UserFieldValue.FromDotNetObject(ecm.ECMSTDDocumentDate));
-                                    rec.SetFieldValue(fd_ECMSTDDocumentType, UserFieldValue.FromDotNetObject(ecm.ECMSTDDocumentType));
-                                    rec.SetFieldValue(fd_ECMSTDExternalReference, UserFieldValue.FromDotNetObject(ecm.ECMSTDExternalReference));
-                                    rec.SetFieldValue(fd_ECMSTDInfringementNo, UserFieldValue.FromDotNetObject(ecm.ECMSTDInfringementNo));
-                                    rec.SetFieldValue(fd_ECMSTDInternalReference, UserFieldValue.FromDotNetObject(ecm.ECMSTDInternalReference));
-                                    rec.SetFieldValue(fd_ECMSTDInternalScanRequest, UserFieldValue.FromDotNetObject(ecm.ECMSTDInternalScanRequest));
-                                    rec.SetFieldValue(fd_ECMSTDJobNo, UserFieldValue.FromDotNetObject(ecm.ECMSTDJobNo));
-                                    rec.SetFieldValue(fd_ECMSTDOtherReferences, UserFieldValue.FromDotNetObject(ecm.ECMSTDOtherReferences));
-                                    rec.SetFieldValue(fd_ECMSTDPropertyNo, UserFieldValue.FromDotNetObject(ecm.ECMSTDPropertyNo));
-                                    rec.SetFieldValue(fd_ECMSTDSummaryText, UserFieldValue.FromDotNetObject(ecm.ECMSTDSummaryText));
-                                    rec.SetFieldValue(fd_ECMStreetsLocality, UserFieldValue.FromDotNetObject(ecm.ECMStreetsLocality));
-                                    rec.SetFieldValue(fd_ECMStreetsPostcode, UserFieldValue.FromDotNetObject(ecm.ECMStreetsPostcode));
-                                    rec.SetFieldValue(fd_ECMStreetsStreet_Name, UserFieldValue.FromDotNetObject(ecm.ECMStreetsStreet_Name));
-                                    rec.SetFieldValue(fd_ECMUserGroupsDescription, UserFieldValue.FromDotNetObject(ecm.ECMUserGroupsDescription));
-                                    rec.SetFieldValue(fd_ECMUserGroupsExtNo, UserFieldValue.FromDotNetObject(ecm.ECMUserGroupsExtNo));
-                                    rec.SetFieldValue(fd_ECMUserGroupsGivenName, UserFieldValue.FromDotNetObject(ecm.ECMUserGroupsGivenName));
-                                    rec.SetFieldValue(fd_ECMUserGroupsOrgEmail, UserFieldValue.FromDotNetObject(ecm.ECMUserGroupsOrgEmail));
-                                    rec.SetFieldValue(fd_ECMUserGroupsSurname, UserFieldValue.FromDotNetObject(ecm.ECMUserGroupsSurname));
-                                    rec.SetFieldValue(fd_ECMVolumeFilename, UserFieldValue.FromDotNetObject(ecm.ECMVolumeFilename));
-                                    rec.SetFieldValue(fd_ECMVolumeLastModified, UserFieldValue.FromDotNetObject(ecm.ECMVolumeLastModified));
-                                    rec.SetFieldValue(fd_ECMVolumeMedia, UserFieldValue.FromDotNetObject(ecm.ECMVolumeMedia));
-                                    rec.SetFieldValue(fd_ECMVolumePrimaryCacheName, UserFieldValue.FromDotNetObject(ecm.ECMVolumePrimaryCacheName));
-                                    rec.SetFieldValue(fd_ECMVolumeRenditionTypeName, UserFieldValue.FromDotNetObject(ecm.ECMVolumeRenditionTypeName));
-                                    rec.SetFieldValue(fd_ECMVolumeShareDrive, UserFieldValue.FromDotNetObject(ecm.ECMVolumeShareDrive));
-                                    rec.SetFieldValue(fd_ECMVolumeSize, UserFieldValue.FromDotNetObject(ecm.ECMVolumeSize));
-                                    rec.SetFieldValue(fd_ECMVolumeStatus, UserFieldValue.FromDotNetObject(ecm.ECMVolumeStatus));
-                                    rec.SetFieldValue(fd_ECMVolumeStorageLocation, UserFieldValue.FromDotNetObject(ecm.ECMVolumeStorageLocation));
-                                    //rec.SetFieldValue(fd_ECMVolumeUpdatable, UserFieldValue.FromDotNetObject(ecm.ECMVolumeUpdatable));
-                                    try
+                                    
+                                   UpdateMasterNoRm(ecm.DocSetID, 0);
+                                    Loggitt("Record number " + ecm.DocSetID + "  could not be added - record save: " + exp.Message.ToString() + Environment.NewLine + iCount.ToString() + " " + strTotal + "" + result.TotalMinutes.ToString() + " " + (Convert.ToInt32(strOffset) + iCount).ToString(), "ECM Migrate issue");
+                                    if (bDetailMsg)
                                     {
-                                        InputDocument doc = new InputDocument();
-                                        doc.SetAsFile(strStorageLoc);
-                                        rec.SetDocument(doc, false, false, "Imported from ECM");
-                                        rec.Save();
-                                        deleteEcmSource(strStorageLoc);
-                                        Console.WriteLine("New record created: " + rec.Number);
-                                        UpdateMasterinRM(rec);
-                                    }
-                                    catch (Exception exp)
-                                    {
-                                        Console.WriteLine("Save new record error: " + exp.Message.ToString());
-                                        UpdateMasterNoRm(ecm.DocSetID, 0);
-                                        Loggitt("Record number " + ecm.DocSetID + "  could not be added - record save: " + exp.Message.ToString() + Environment.NewLine + iCount.ToString() + " " + strTotal + "" + result.TotalMinutes.ToString() + " " + (Convert.ToInt32(strOffset) + iCount).ToString(), "ECM Migrate issue");
-
+                                        Console.WriteLine("Update record error: " + exp.Message.ToString());
+                                        //Console.ReadLine();
                                     }
                                 }
-                                else
-                                {
-                                    Console.WriteLine("Cant find ECM container in Eddie: " + ecm.ECMBCSFunction_Name + " - " + ecm.ECMBCSActivity_Name.Replace("-", "~"));
-                                }
-
                             }
                             else
                             {
-                                Console.WriteLine("ECM electronic document cant be found: " + strStorageLoc);
-                                UpdateMasterNoRm(ecm.DocSetID, 1);
-                                // UpdateMasterinRMnoDoc()
+                                Console.WriteLine("File not available: " + strStorageLoc);
                             }
 
-                        //}
-                        //else
-                        //{
-                        //    Console.WriteLine("ECM record already exists: " + ecm.DocSetID);
-                        //    UpdateMasterinRM(reccheck);
-                        //}
-
+                        }
+                        else
+                        {
+                            
+                            if (bDetailMsg)
+                            {
+                                Console.WriteLine("ECM record does not exist: " + ecm.DocSetID);
+                                //Console.ReadLine();
+                            }
+                            UpdateMasterinRM(reccheck);
+                        }
                     }
                     catch (Exception exp)
                     {
-                        Console.WriteLine("Outer look error: " + exp.Message.ToString());
-                        Loggitt("Record number " + ecm.DocSetID + "  could not be added -  Outer Error: " + exp.Message.ToString()+Environment.NewLine+ iCount.ToString()+" "+strTotal+""+result.TotalMinutes.ToString()+" "+(Convert.ToInt32(strOffset) + iCount).ToString(), "ECM Migrate issue");
+                        Loggitt("Record number " + ecm.DocSetID + "  could not be added -  Outer Error: " + exp.Message.ToString() + Environment.NewLine + iCount.ToString() + " " + strTotal + "" + result.TotalMinutes.ToString() + " " + (Convert.ToInt32(strOffset) + iCount).ToString(), "ECM Migrate issue");
                         //Console.ReadLine();
+                        if (bDetailMsg)
+                        {
+                            Console.WriteLine("Outer look error: " + exp.Message.ToString());
+                            Console.ReadLine();
+                        }
                     }
                 }
             }
             //});
-
+            Console.ReadLine();
         }
         private static void deleteEcmSource(string strStorageLoc)
         {
@@ -924,7 +767,7 @@ namespace caCreateEcmV2
         {
             try
             {
-                if(bDetailMsg)
+                if (bDetailMsg)
                 {
                     Console.WriteLine("Starting UpdateMasterinRM");
                     Console.ReadLine();
@@ -935,7 +778,7 @@ namespace caCreateEcmV2
                 string SQL = "UPDATE ECM_MasterCheck SET Checked=@now, RMUri=@rmuri, RmRevisions=@ver, Issue=@issue WHERE DocumentSetID=@docsetid";
                 if (bDetailMsg)
                 {
-                    Console.WriteLine("UpdateMasterinRM query: "+SQL);
+                    Console.WriteLine("UpdateMasterinRM query: " + SQL);
                     Console.ReadLine();
                 }
                 SqlConnection con = new SqlConnection(strCon);
@@ -954,11 +797,11 @@ namespace caCreateEcmV2
                     Console.ReadLine();
                 }
             }
-            catch(Exception exp)
+            catch (Exception exp)
             {
                 if (bDetailMsg)
                 {
-                    Console.WriteLine("Query execution failed: Error "+exp.Message.ToString());
+                    Console.WriteLine("Query execution failed: Error " + exp.Message.ToString());
                     Console.ReadLine();
                 }
             }
@@ -993,7 +836,7 @@ namespace caCreateEcmV2
                     Console.ReadLine();
                 }
             }
-            catch(Exception exp)
+            catch (Exception exp)
             {
                 if (bDetailMsg)
                 {
@@ -1024,6 +867,4 @@ namespace caCreateEcmV2
             fs1.Close();
         }
     }
-}
-
 }
