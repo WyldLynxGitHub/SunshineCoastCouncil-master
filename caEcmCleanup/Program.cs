@@ -37,7 +37,7 @@ namespace caEcmCleanup
                         da.Fill(dt);
                         foreach (DataRow dr in dt.Rows)
                         {
-                            Console.WriteLine("Document ID: {0},  from the extract group {1} and pass {2}", dr[0].ToString(), dr[1].ToString(), dr[2].ToString());
+                            Console.WriteLine("Document ID: {0},  from the extract group {1} and pass {2}", dr[0].ToString().Trim(), dr[1].ToString().Trim(), dr[2].ToString().Trim());
                             iFound++;
                             if (Convert.ToInt32(dr[2]) == 1)
                             {
@@ -49,52 +49,78 @@ namespace caEcmCleanup
                             }
 
                         }
-                        //if(bPass2)
-                        //{
 
-                        //}
-                        //SELECT distinct [STD:Version], [Volume:Filename], [Volume:StorageLocation] FROM [StagingMove].[dbo].[Extract Public DIFF] Where[STD: DocumentSetID] = 19433401 order by[STD:Version]
-                        //                      SELECT[DocumentSetID]
-                        //,[OrigBatch]
-                        //,[ClassName]
-                        //,[MaxVersion]
-                        //,[RMUri]
-                        //,[Checked]
-                        //,[Created]
-                        //,[Issue]
-                        //,[RmRevisions]
-                        //,[Pass]
-                        //,[Comments]
-                        //  FROM[StagingMove].[dbo].[ECM_MasterCheck]
-                        //  where DocumentSetID = 19433401
-
-                        //}
                     }
-                    if (bPass1)
+                    //19433401
+                    using (Database db = new Database())
                     {
-                        con.Open();
-                        using (SqlCommand command = new SqlCommand("SELECT distinct [STD:Version], [Volume:Filename], [Volume:StorageLocation] FROM [StagingMove].[dbo].[Elai] Where [STD:DocumentSetID] = " + iDocsetId + " order by[STD:Version]", con))
+                        Record r = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, iDocsetId.ToString());
+                        if(r!=null)
                         {
-                            
-                            SqlDataReader reader = command.ExecuteReader();
-                            while (reader.Read())
+                           // r.ChildRevisions.
+                           
+                            Console.WriteLine("DocSetID {0} is in Eddie. Uri: {1}. last record update: {2}. Last current document modified date: {3}, current document details {4} - last accessed {5}", iDocsetId.ToString(), r.Uri.ToString(), r.LastUpdatedOn.ToShortDateTimeString(), r.DateModified.ToShortDateTimeString(), r.DocumentDetails, r.DocumentLastAccessedDate.ToShortDateTimeString() +Environment.NewLine);
+                            //
+                            RecordRevisions lstr = r.ChildRevisions;
+                            Console.WriteLine("Revision count: " + r.RevisionNumber.ToString());
+                            foreach (RecordRevision rv in lstr)
                             {
-                                Console.WriteLine("Pass 1 revision {0}, document {1}", reader.GetInt16(0).ToString(), reader.GetString(1));
+                                Console.WriteLine("Eddie revisions {0}, description {1} and last date updated: {2}", rv.RevisionNumber.ToString(), rv.Description, rv.DateModified.ToShortDateTimeString());
+
                             }
                         }
-                    }
-                    if (bPass2)
-                    {
-                        con.Open();
-                        using (SqlCommand command = new SqlCommand("SELECT distinct [STD:Version], [Volume:Filename], [Volume:StorageLocation] FROM [StagingMove].[dbo].[Extract Public DIFF] Where [STD:DocumentSetID] = " + iDocsetId + " order by[STD:Version]", con))
+                        else
                         {
-                            SqlDataReader reader = command.ExecuteReader();
-                            while (reader.Read())
-                            {
-                                Console.WriteLine("Pass 2 revision {0}, document {1}", reader.GetInt16(0).ToString(), reader.GetString(1));
-                            }
-
+                            Console.WriteLine("DocSetID " + iDocsetId.ToString() + " is not in eddie.");
                         }
+
+
+
+                        con.Open();
+                        if (bPass1 && bPass2 == false)
+                        {
+                            //con.Open();
+                            using (SqlCommand command = new SqlCommand("SELECT distinct [STD:Version], [Volume:Filename], [Volume:StorageLocation] FROM [StagingMove].[dbo].[Elai] Where [STD:DocumentSetID] = " + iDocsetId + " order by[STD:Version]", con))
+                            {
+                                using (SqlDataReader reader = command.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        string sDocLoc = "No Doc on 35";
+                                        string dfdfd = FindMappedAllStorage(reader.GetString(1));
+                                        if (dfdfd != null)
+                                        {
+                                            sDocLoc = dfdfd;
+                                        }
+                                        Console.WriteLine("Pass 1 version {0} - document {1}. {2}", reader.GetInt16(0).ToString(), reader.GetString(1), sDocLoc);
+                                    }
+                                }
+                            }
+                        }
+                        if (bPass2)
+                        {
+                            //con.Open();
+                            using (SqlCommand command = new SqlCommand("SELECT distinct [STD:Version], [Volume:Filename], [Volume:StorageLocation] FROM [StagingMove].[dbo].[Extract Public DIFF] Where [STD:DocumentSetID] = " + iDocsetId + " order by[STD:Version]", con))
+                            {
+                                using (SqlDataReader reader = command.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+
+
+                                        string sDocLoc = "No Doc on 35";
+                                        string dfdfd = FindMappedAllStorage(reader.GetString(1));
+                                        if (dfdfd != null)
+                                        {
+                                            sDocLoc = dfdfd;
+                                        }
+                                        Console.WriteLine("Pass 2 version {0} - document {1}. {2}", reader.GetInt16(0).ToString(), reader.GetString(1), sDocLoc);
+                                    }
+                                }
+
+                            }
+                        }
+                        con.Close();
                     }
                     //Console.WriteLine("Records to process: " + dtMaster.Rows.Count.ToString());
                     ////Console.WriteLine("How many to bulk process?");
@@ -181,56 +207,56 @@ namespace caEcmCleanup
 
             string skjfdh = null;
 
-            if (File.Exists(@"T:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation))
+            if (File.Exists(@"Y:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation))
             {
-                FileInfo fi = new FileInfo(@"T:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation);
+                FileInfo fi = new FileInfo(@"Y:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation);
                 skjfdh = fi.FullName + " " + fi.Length.ToString();
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"T:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"T:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"T:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"T:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"U:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"U:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"U:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"U:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"O:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"O:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"W:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"W:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName + " " + fi.Length.ToString();
                 }
             }

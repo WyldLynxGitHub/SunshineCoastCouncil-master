@@ -80,10 +80,12 @@ namespace caMigrateRevisions
                     string strOffset = Console.ReadLine();
                     Console.WriteLine("Fetch?");
                     string strFetch = Console.ReadLine();
+                    string strbatch = "[Extract Remainder DIFF]";
                     //Console.WriteLine("Enter SQL string");
                     //string sqlstring = "Select [STD:DocumentSetID], [STD:version], [Volume:StorageLocation], [Volume:Filename] from " + strBatch + " group by [STD:DocumentSetID], [Volume:StorageLocation], [Volume:Filename], [STD:version] Having Max([STD:version]) > 1 and [Volume:Filename] is not null Order by[STD:DocumentSetID] desc, [STD:version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
                     //string sqlstring = "SELECT dbo.Eri.[STD:DocumentSetID], dbo.Eri.[STD:Version], dbo.Eri.[Volume:StorageLocation], dbo.Eri.[Volume:Filename], M.MaxVersion, M.RmRevisions FROM from INNER JOIN dbo.ECM_MasterCheck AS M ON dbo.Eri.[STD:DocumentSetID] = M.DocumentSetID GROUP BY dbo.Eri.[STD: DocumentSetID], dbo.Eri.[Volume: StorageLocation], dbo.Eri.[Volume: Filename], dbo.Eri.[STD: Version], M.RmRevisions, M.MaxVersion HAVING (MAX(dbo.Eri.[STD: Version]) > 1) AND (M.MaxVersion > M.RmRevisions) ORDER BY dbo.Eri.[STD:DocumentSetID] DESC, dbo.Eri.[STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
-                    string sqlstring = "SELECT E.[STD:DocumentSetID], E.[STD:Version], E.[Volume:StorageLocation], E.[Volume:Filename] FROM " + strBatch + " AS E INNER JOIN dbo.ECM_MasterCheck AS M ON E.[STD:DocumentSetID] = M.DocumentSetID GROUP BY E.[STD:DocumentSetID], E.[Volume:StorageLocation], E.[Volume:Filename], E.[STD:Version], M.RmRevisions, M.MaxVersion, M.Pass HAVING (MAX(E.[STD:Version]) > 1) AND(M.MaxVersion > M.RmRevisions) AND M.Pass = 1 ORDER BY E.[STD:DocumentSetID] DESC, E.[STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                    //string sqlstring = "SELECT E.[STD:DocumentSetID], E.[STD:Version], E.[Volume:StorageLocation], E.[Volume:Filename] FROM " + strBatch + " AS E INNER JOIN dbo.ECM_MasterCheck AS M ON E.[STD:DocumentSetID] = M.DocumentSetID GROUP BY E.[STD:DocumentSetID], E.[Volume:StorageLocation], E.[Volume:Filename], E.[STD:Version], M.RmRevisions, M.MaxVersion, M.Pass HAVING (MAX(E.[STD:Version]) > 1) AND(M.MaxVersion > M.RmRevisions) AND M.Pass = 1 ORDER BY E.[STD:DocumentSetID] DESC, E.[STD:Version] OFFSET " + strOffset + " ROWS FETCH NEXT " + strFetch + " ROWS ONLY";
+                    string sqlstring = "SELECT E.[STD:DocumentSetID], E.[STD:Version], E.[Volume:StorageLocation], E.[Volume:Filename] FROM " + strbatch + " AS E INNER JOIN dbo.ECM_MasterCheck AS M ON E.[STD:DocumentSetID] = M.DocumentSetID GROUP BY E.[STD:DocumentSetID], E.[Volume:StorageLocation], E.[Volume:Filename], E.[STD:Version], M.RmRevisions, M.MaxVersion, M.Pass, Duplicate HAVING (M.MaxVersion > M.RmRevisions) AND M.Pass = 2 and Duplicate = 0 ORDER BY E.[STD:DocumentSetID] DESC, E.[STD:Version]";
                     //List<ECMMigration> lstecm = new List<ECMMigration>();dgdg
 
                     //
@@ -206,56 +208,56 @@ namespace caMigrateRevisions
 
             string skjfdh = null;
 
-            if (File.Exists(@"T:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation))
+            if (File.Exists(@"L:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation))
             {
-                FileInfo fi = new FileInfo(@"T:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation);
+                FileInfo fi = new FileInfo(@"L:\ECMIncache2\INCACHE\" + eCMVolumeStorageLocation);
                 skjfdh = fi.FullName;
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"T:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"L:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"T:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache17\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"T:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"T:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache19\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"U:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"U:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache14\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"U:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"U:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache15\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"O:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"O:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache8\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }
             if (skjfdh == null)
             {
-                if (File.Exists(@"W:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation))
+                if (File.Exists(@"Y:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation))
                 {
-                    FileInfo fi = new FileInfo(@"W:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation);
+                    FileInfo fi = new FileInfo(@"Y:\ECMIncache6\INCACHE\" + eCMVolumeStorageLocation);
                     skjfdh = fi.FullName;
                 }
             }

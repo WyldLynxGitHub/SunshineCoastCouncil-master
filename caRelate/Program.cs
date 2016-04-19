@@ -24,7 +24,7 @@ namespace caRelate
             string connectionString = "Data Source=Cl1025;Initial Catalog=StagingMove;Integrated Security=True";
             //string Sql = "SELECT R.recordId, R.uri, E.reVersions FROM dbo.TSRECORD AS R LEFT OUTER JOIN dbo.TSRECELEC AS E ON R.uri = E.uri WHERE (R.rcRecTypeUri = 16) and E.reVersions is null";
             //string Sql = "SELECT DocSetID, RelatedDocSetID FROM [Extract Related Docs - Public Class]";
-            string Sql = "SELECT DocSetID, RelatedDocSetID FROM [Extract Related Docs - Public Class DIFF]";
+            string Sql = "SELECT DocSetID, RelatedDocSetID FROM [Extract Related Docs - Public Class]";
             //WHERE(R.rcRecTypeUri = 21)"
             using (SqlConnection con = new SqlConnection(connectionString))
             {
@@ -56,23 +56,6 @@ namespace caRelate
                 foreach (RMrelate rm in lstRm)
                 {
                     Console.WriteLine("Record one: " + rm.recordid1 + " Record two: " + rm.recordid2);
-
-                    //if(db.FindTrimObjectByName(BaseObjectTypes.Record,rm.recordid1.ToString()) != null)
-                    //{
-                    //    Console.WriteLine("Record one exists: Yes");
-                    //}
-                    // else
-                    //{
-                    //    Console.WriteLine("Record one exists: No");
-                    //}
-                    //if (db.FindTrimObjectByName(BaseObjectTypes.Record, rm.recordid2.ToString()) != null)
-                    //{
-                    //    Console.WriteLine("Record two exists: Yes");
-                    //}
-                    //else
-                    //{
-                    //    Console.WriteLine("Record two exists: No");
-                    //}
                     try
                     {
                         Record r1 = (Record)db.FindTrimObjectByName(BaseObjectTypes.Record, rm.recordid1.ToString());
@@ -99,7 +82,11 @@ namespace caRelate
                         {
                             //if (r1.ChildRelationships.Count == 0)
                             //{
-                                r1.RelatedRecord = r2;
+
+
+                            r1.AttachRelationship(r2, RecordRelationshipType.IsRelatedTo);
+
+                                //r1.RelatedRecord = r2;
                                 r1.Save();
                                 Console.WriteLine("Relationship Created ok: ");
                             //}
